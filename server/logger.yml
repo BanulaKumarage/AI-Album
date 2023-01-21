@@ -1,0 +1,37 @@
+version: 1
+
+root:
+    level: NOTSET
+    handlers: [ noHandler ]
+
+loggers:
+    __main__:
+        level: DEBUG
+        handlers: [ console ]
+        propagate: True
+    main:
+        level: DEBUG
+        handlers: [ console ]
+        propagate: True
+    server:
+        level: DEBUG
+        handlers: [ console ]
+        propagate: True
+    aiohttp:
+        level: INFO
+        handlers: [ console ]
+
+handlers:
+    noHandler:
+        class: logging.NullHandler
+        level: NOTSET
+    console:
+        class: logging.StreamHandler
+        formatter: simple
+        stream: ext://sys.stderr
+
+formatters:
+    simple:
+      format: "[{name:^10s}][{levelname:^7s}] (L:{lineno}) {message}"
+      style: "{"
+  
