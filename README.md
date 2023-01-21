@@ -20,7 +20,7 @@ $ pip install networkx
 ## Running the dev server
 
 ```
-adev runserver server/__main__.py  --root ./server/ 
+adev runserver server/__main__.py
 ```
 
 ## Deployment

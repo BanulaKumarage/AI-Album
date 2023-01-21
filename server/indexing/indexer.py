@@ -5,6 +5,7 @@ import traceback
 import logging
 import glob
 from typing import Optional
+
 import networkx as nx
 
 from server.db import albums, media
@@ -67,7 +68,7 @@ def init_path_graph():
     return pg
 
 
-def run_indexing(dir):
+async def run_indexing(dir):
     LOG.debug(f'Traversing {dir}/data')
     pg =  init_path_graph()
 
