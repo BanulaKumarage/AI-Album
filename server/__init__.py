@@ -15,6 +15,9 @@ import warnings
 from logging.config import dictConfig
 from pathlib import Path
 import yaml
+import sys
+import pathlib
+import os
 
 
 logging.captureWarnings(True)
@@ -23,7 +26,10 @@ warnings.simplefilter("default")
 
 # TODO attach this bit to indexer
 SUPPORTED_IMAGE_FORMATS = ['jpeg', 'jpg', 'NEF', 'GPR']
+CWD = pathlib.Path(os.getcwd())
+LAVIS = str(pathlib.Path(CWD).joinpath('LAVIS'))
 
+sys.path.append(LAVIS)
 
 def load_logger():
     log_file = Path(__file__).parent / "logger.yml"

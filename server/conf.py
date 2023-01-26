@@ -5,3 +5,6 @@ mongo_db_user = 'aialbumadmin'
 mongo_db_password = 'aialbumpw'
 mongo_db_database = 'ai_album'
 mongo_db_auth = 'admin'
+
+# gpu configs
+captioning_workers_per_gpu = 4

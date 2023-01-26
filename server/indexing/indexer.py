@@ -68,7 +68,8 @@ def init_path_graph():
     return pg
 
 
-async def run_indexing(dir):
+def run_indexing(dir):
+    LOG.debug('Start indexing')
     LOG.debug(f'Traversing {dir}/data')
     pg =  init_path_graph()
 
@@ -128,3 +129,4 @@ async def run_indexing(dir):
                     pg.nodes[part]['id'] = record_album(part, pg.nodes[last_node]['id'])
 
                 record_media(resource_name, resource_path, pg.nodes[part]['id'])
+    LOG.debug('Finish indexing')

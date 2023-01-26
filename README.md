@@ -15,6 +15,8 @@ $ pip install pydantic-mongo
 $ pip install jsons
 $ pip ninstall pyyaml
 $ pip install networkx
+$ mamba install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
+$ pip install cryptography==38.0.4
 ```
 
 ## Running the dev server

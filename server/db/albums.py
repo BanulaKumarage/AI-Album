@@ -25,7 +25,7 @@ def get_album(id: str):
     return result
 
 
-def get_albums(query: str, sort: Any, skip: int, limit: int):
+def get_albums(query: Any, sort: Any, skip: int, limit: int):
     result = client.ai_album.albums.find(query).sort(sort).skip(skip).limit(limit)
 
     return result
