@@ -8,3 +8,6 @@ mongo_db_auth = 'admin'
 
 # gpu configs
 captioning_workers_per_gpu = 4
+
+# album 
+thumbnail_resolution = 250, 250

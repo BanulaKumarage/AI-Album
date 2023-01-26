@@ -17,6 +17,7 @@ $ pip ninstall pyyaml
 $ pip install networkx
 $ mamba install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
 $ pip install cryptography==38.0.4
+$ pip install aiohttp_cors
 ```
 
 ## Running the dev server

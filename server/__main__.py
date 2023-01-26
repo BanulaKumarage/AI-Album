@@ -7,6 +7,7 @@ import sys
 
 from aiohttp import web
 import asyncio
+import aiohttp_cors
 
 from server import load_logger, CWD
 from server.db import client
@@ -50,8 +51,19 @@ def create_app():
     LOG.debug('Initiating app')
     app = web.Application()
     app.add_routes(routes)
+
+    cors = aiohttp_cors.setup(app, defaults={
+        "*": aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers="*",
+            )
+    })
+    for route in list(app.router.routes()):
+        cors.add(route)
+
     app.on_cleanup.append(clean)
-    app.cleanup_ctx.append(run_indexer)
+    # app.cleanup_ctx.append(run_indexer)
     LOG.debug('Initiating successful')
 
     return app

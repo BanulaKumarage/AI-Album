@@ -20,7 +20,6 @@ from server.conf import captioning_workers_per_gpu
 LOG = logging.getLogger(__name__)
 
 
-
 def captioning_worker(dir, workers, worker_id, device_name):
     model, vis_processors, _ = load_model_and_preprocess(name="blip_caption", model_type="base_coco", is_eval=True, device=device_name)
     processed = 0
@@ -40,7 +39,7 @@ def captioning_worker(dir, workers, worker_id, device_name):
             raw_image = Image.open(path).convert("RGB")
             image = vis_processors["eval"](raw_image).unsqueeze(0).to(device_name)
             caption = model.generate({"image": image}, use_nucleus_sampling=True, num_captions=5)
-            # LOG.debug(f'IMAGE - {path} \n CAP - {caption} WORKER {worker_id}')
+            LOG.debug(f'IMAGE - {path} \n CAP - {caption} WORKER {worker_id}')
             media.update_media(
                 { '_id':  entry['_id'] }, 
                 { '$set':  { 'caption': '.'.join(caption)}}
@@ -55,7 +54,7 @@ def run_image_processing(dir):
         threads = []
         workers_per_gpu = captioning_workers_per_gpu
         workers = workers_per_gpu * device_count
-        
+
         LOG.debug(f'Start image processing using {[f"device:{idx}" for idx in range(device_count)]}')
         
         for device_id in range(device_count):
