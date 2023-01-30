@@ -3,6 +3,7 @@ import logo from './logo.svg';
 import './App.css';
 import {
   createBrowserRouter,
+  Navigate,
   RouterProvider,
 } from "react-router-dom";
 import HomePage from './home-page/HomePage';
@@ -11,12 +12,16 @@ import HomePage from './home-page/HomePage';
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <div>Hello world!</div>,
+    element: <Navigate to="/albums/all-media" replace />
   },
   {
-    path: "/home",
-    element: <HomePage/>
+    path: "/albums",
+    element: <Navigate to="/albums/all-media" replace />
   },
+  {
+    path: "/albums/:album",
+    element: <HomePage/>
+  }
 ]);
 
 function App() {

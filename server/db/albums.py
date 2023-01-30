@@ -29,3 +29,9 @@ def get_albums(query: Any, sort: Any, skip: int, limit: int):
     result = client.ai_album.albums.find(query).sort(sort).skip(skip).limit(limit)
 
     return result
+
+
+def get_album_media(id: str, sort: Any, skip: int, limit: int):
+    result = client.ai_album.media.find({'albumId': ObjectId(id)}).sort(sort).skip(skip).limit(limit)
+
+    return result

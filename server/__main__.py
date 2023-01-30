@@ -9,7 +9,7 @@ from aiohttp import web
 import asyncio
 import aiohttp_cors
 
-from server import load_logger, CWD
+from server import load_logger, CWD, thread_pool_executor, process_pool_executor
 from server.db import client
 import server.db.albums as albums
 from server.requests.routes import routes
@@ -26,6 +26,8 @@ load_logger()
 
 async def clean(app):
     client.close()
+    thread_pool_executor.shutdown(wait=False)
+    process_pool_executor.shutdown(wait=False)
 
     # app['indexer'].cancel()
     app['image_processing'].cancel()

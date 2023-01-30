@@ -22,27 +22,39 @@ import List from '@mui/material/List';
 import { ListItemButton } from '@mui/material';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
+import withRouter, { RouterProps } from '../inject-router';
 import * as _ from 'lodash'
+import MediaView from '../components/MediaView';
 
-export type HomePageProps = { text?: string };
 
-export default class HomePage extends Component<HomePageProps, any> {
+export type HomePageProps = { text?: string, router: RouterProps};
+export type HomePageState = { 
+  error: any,
+  isLoaded: boolean,
+  albums: Array<any>,
+  albumMedia: Array<any>,
+  anchorElNav?: any,
+  anchorElUser?: any,
+  selectedAlbum?: any
+};
+
+class HomePage extends Component<HomePageProps, any> {
   constructor(props: HomePageProps) {
     super(props);
+    const album = this.props.router.params.album;
     this.state = {
       error: null,
       isLoaded: false,
       albums: [],
-      albumMedia: [],
       anchorElNav: null,
       anchorElUser: null,
-      selectedAlbum: null
+      selectedAlbum: album,
+      mediaUrl: _.isEqual(album, 'all-media') ? `${process.env.REACT_APP_API}/media` : `${process.env.REACT_APP_API}/albums/${album}/media`
     };
-  }
 
-  componentDidMount() {
     this.getAlbums();
   }
+
 
   getAlbums() {
     fetch(`${process.env.REACT_APP_API}/albums`)
@@ -64,30 +76,17 @@ export default class HomePage extends Component<HomePageProps, any> {
       )
   }
 
-  getMedia(album='') {
-    fetch(`${process.env.REACT_APP_API}/media`)
-      .then(res => res.json())
-      .then(
-        (result) => {
-          this.setState({
-            ...this.state,
-            isLoaded: true,
-            albumMedia: result,
-            selectedAlbum: ''
-          });
-          console.log(result);
-        },
-        (error) => {
-          this.setState({
-            isLoaded: true,
-            error
-          });
-        }
-      )
+  componentDidUpdate(prevProps: any, prevState: any) {
+    console.log('yeah', prevProps)
   }
 
-  scroll(event: any) {
-    console.log(event)
+  changeAlbum(album: string) {
+    this.setState({
+      ...this.state,
+      mediaUrl: _.isEqual(album, 'all-media') ? `${process.env.REACT_APP_API}/media` : `${process.env.REACT_APP_API}/albums/${album}/media`,
+        selectedAlbum: album
+    })
+    this.props.router.navigate(`/albums/${album}`)
   }
 
   render() {
@@ -185,7 +184,7 @@ export default class HomePage extends Component<HomePageProps, any> {
           <Grid item xs={4}>
             <Paper>
             <List sx={{ width: '100%', maxWidth: '100%', bgcolor: 'background.paper' }}>
-              <ListItemButton selected={this.state.selectedAlbum==''} onClick={() => this.getMedia('')}>
+              <ListItemButton selected={_.isEqual(this.state.selectedAlbum, 'all-media')} onClick={() => this.changeAlbum('all-media')}>
                 <ListItemAvatar>
                   <Avatar>
                     <ImageIcon />
@@ -196,7 +195,11 @@ export default class HomePage extends Component<HomePageProps, any> {
               {
                 _.map(_.get(this.state, 'albums'), (item: any) => {
                   return (
-                    <ListItemButton selected={item._id == this.state.selectedAlbum} onClick={() => this.getMedia(item._id.$oid)}>
+                    <ListItemButton 
+                      key={`album-${item._id.$oid}`} 
+                      selected={_.isEqual(item._id.$oid, this.state.selectedAlbum)} 
+                      onClick={() => this.changeAlbum(item._id.$oid)}
+                    >
                       <ListItemAvatar>
                         <Avatar>
                           <ImageIcon />
@@ -211,20 +214,7 @@ export default class HomePage extends Component<HomePageProps, any> {
             </Paper>
           </Grid>
           <Grid item xs={8}>
-            <Paper>
-            <ImageList sx={{ width: '100%', height: '100%' }} cols={5} rowHeight={150} onScrollCapture={this.scroll}>
-              {_.map(_.get(this.state, 'albumMedia'), (item) => (
-                <ImageListItem key={item.path}>
-                  <img
-                    src={`${process.env.REACT_APP_API}/thumbnail/${item.path}`}
-                    srcSet={`${process.env.REACT_APP_API}/thumbnail/${item.path} 2x`}
-                    alt={item.name}
-                    loading="lazy"
-                  />
-                </ImageListItem>
-              ))}
-            </ImageList>
-            </Paper>
+            <MediaView url={this.state.mediaUrl}></MediaView>
           </Grid>
         </Grid>
         </div>
@@ -232,3 +222,5 @@ export default class HomePage extends Component<HomePageProps, any> {
     )
   }
 }
+
+export default withRouter(HomePage);

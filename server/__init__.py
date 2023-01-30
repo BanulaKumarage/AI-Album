@@ -18,6 +18,7 @@ import yaml
 import sys
 import pathlib
 import os
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 
 logging.captureWarnings(True)
@@ -36,3 +37,6 @@ def load_logger():
 
     with open(log_file, 'r') as stream:
         dictConfig(yaml.safe_load(stream))
+
+thread_pool_executor = ThreadPoolExecutor(max_workers=8)
+process_pool_executor = ProcessPoolExecutor(max_workers=8)
