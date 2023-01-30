@@ -27,8 +27,8 @@ import * as _ from 'lodash'
 import MediaView from '../components/MediaView';
 
 
-export type HomePageProps = { text?: string, router: RouterProps};
-export type HomePageState = { 
+export type HomePageProps = { text?: string, router: RouterProps };
+export type HomePageState = {
   error: any,
   isLoaded: boolean,
   albums: Array<any>,
@@ -84,7 +84,7 @@ class HomePage extends Component<HomePageProps, any> {
     this.setState({
       ...this.state,
       mediaUrl: _.isEqual(album, 'all-media') ? `${process.env.REACT_APP_API}/media` : `${process.env.REACT_APP_API}/albums/${album}/media`,
-        selectedAlbum: album
+      selectedAlbum: album
     })
     this.props.router.navigate(`/albums/${album}`)
   }
@@ -98,7 +98,7 @@ class HomePage extends Component<HomePageProps, any> {
         anchorElNav: event.currentTarget
       })
     };
-  
+
     const handleCloseNavMenu = () => {
       console.log('click')
       this.setState({
@@ -180,43 +180,43 @@ class HomePage extends Component<HomePageProps, any> {
           </Container>
         </AppBar>
         <div className='m-0'>
-        <Grid container spacing={1} padding={1} textAlign={'center'}> 
-          <Grid item xs={4}>
-            <Paper>
-            <List sx={{ width: '100%', maxWidth: '100%', bgcolor: 'background.paper' }}>
-              <ListItemButton selected={_.isEqual(this.state.selectedAlbum, 'all-media')} onClick={() => this.changeAlbum('all-media')}>
-                <ListItemAvatar>
-                  <Avatar>
-                    <ImageIcon />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText primary="All media" secondary="All the media you have" />
-              </ListItemButton>
-              {
-                _.map(_.get(this.state, 'albums'), (item: any) => {
-                  return (
-                    <ListItemButton 
-                      key={`album-${item._id.$oid}`} 
-                      selected={_.isEqual(item._id.$oid, this.state.selectedAlbum)} 
-                      onClick={() => this.changeAlbum(item._id.$oid)}
-                    >
-                      <ListItemAvatar>
-                        <Avatar>
-                          <ImageIcon />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText primary={item.name} secondary="TBD" />
-                    </ListItemButton>
-                  )
-                })
-              }
-            </List>
-            </Paper>
+          <Grid container spacing={1} padding={1} textAlign={'center'}>
+            <Grid item xs={4}>
+              <Paper>
+                <List sx={{ width: '100%', maxWidth: '100%', bgcolor: 'background.paper' }}>
+                  <ListItemButton selected={_.isEqual(this.state.selectedAlbum, 'all-media')} onClick={() => this.changeAlbum('all-media')}>
+                    <ListItemAvatar>
+                      <Avatar>
+                        <ImageIcon />
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary="All media" secondary="All the media you have" />
+                  </ListItemButton>
+                  {
+                    _.map(_.get(this.state, 'albums'), (item: any) => {
+                      return (
+                        <ListItemButton
+                          key={`album-${item._id.$oid}`}
+                          selected={_.isEqual(item._id.$oid, this.state.selectedAlbum)}
+                          onClick={() => this.changeAlbum(item._id.$oid)}
+                        >
+                          <ListItemAvatar>
+                            <Avatar>
+                              <ImageIcon />
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText primary={item.name} secondary="TBD" />
+                        </ListItemButton>
+                      )
+                    })
+                  }
+                </List>
+              </Paper>
+            </Grid>
+            <Grid item xs={8}>
+              <MediaView url={this.state.mediaUrl}></MediaView>
+            </Grid>
           </Grid>
-          <Grid item xs={8}>
-            <MediaView url={this.state.mediaUrl}></MediaView>
-          </Grid>
-        </Grid>
         </div>
       </div>
     )
