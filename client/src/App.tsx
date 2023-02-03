@@ -6,7 +6,8 @@ import {
   Navigate,
   RouterProvider,
 } from "react-router-dom";
-import HomePage from './home-page/HomePage';
+import AlbumsPage from './pages/albums-page/AlbumsPage';
+import MediaPage from './pages/MediaPage';
 
 
 const router = createBrowserRouter([
@@ -20,7 +21,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/albums/:album",
-    element: <HomePage/>
+    element: <AlbumsPage/>
+  },
+  {
+    path: "/albums/:album/media/:media",
+    element: <MediaPage/>
   }
 ]);
 

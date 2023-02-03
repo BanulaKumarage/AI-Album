@@ -17,3 +17,9 @@ async def fetch_thumbnail(req: Request):
     return web.Response(body=stream.getvalue(), content_type='image/jpeg')
 
 
+async def fetch_media(req: Request):
+    im_id = req.path[10:]
+    loop = asyncio.get_running_loop()
+    stream = await loop.run_in_executor(process_pool_executor, image_tasks.convert_to_image_stream, im_id)
+
+    return web.Response(body=stream.getvalue(), content_type='image/jpeg')

@@ -22,5 +22,6 @@ routes = [
 
     # static
     web.static('/static', str(pathlib.Path(CWD).joinpath('data')), follow_symlinks=True),
-    web.get('/thumbnail/{none:.*}', utils.fetch_thumbnail)
+    web.get('/thumbnail/{none:.*}', utils.fetch_thumbnail),
+    web.get('/fullsize/{none:.*}', utils.fetch_media)
 ]
