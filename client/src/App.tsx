@@ -7,8 +7,15 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import AlbumsPage from './pages/albums-page/AlbumsPage';
-import MediaPage from './pages/MediaPage';
+import MediaPage from './pages/media-page/MediaPage';
+import * as _ from 'lodash'
+import NavWrapperPage from './pages/nav-wrapper-page/NavWrapperPage';
 
+
+export type MainPageState = {
+  anchorElNav?: any | null,
+  anchorElUser?: any | null,
+};
 
 const router = createBrowserRouter([
   {
@@ -16,22 +23,28 @@ const router = createBrowserRouter([
     element: <Navigate to="/albums/all-media" replace />
   },
   {
-    path: "/albums",
-    element: <Navigate to="/albums/all-media" replace />
+    path: "/",
+    element: <NavWrapperPage/>,
+    children: [
+      {
+        path: "/albums",
+        element: <Navigate to={'/albums/all-media'} />
+      },
+      {
+        path: "/albums/:album",
+        element: <AlbumsPage />
+      },
+      {
+        path: "/albums/:album/media/:media",
+        element: <MediaPage />
+      }
+    ]
   },
-  {
-    path: "/albums/:album",
-    element: <AlbumsPage/>
-  },
-  {
-    path: "/albums/:album/media/:media",
-    element: <MediaPage/>
-  }
 ]);
 
 function App() {
   return (
-    <RouterProvider router={router} />
+      <RouterProvider router={router}/>
   );
 }
 

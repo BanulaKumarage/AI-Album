@@ -13,7 +13,7 @@ async def get_albums(request: Request):
     LOG.debug(f'get_albums {request}')
 
     return json_response(
-        albums.get_albums(
+        await albums.get_albums(
                 {}, 
                 request.query.get('sort', 'name'),
                 int(request.query.get('skip', 0)), 
@@ -25,7 +25,7 @@ async def get_albums(request: Request):
 async def get_album(request: Request):
     LOG.debug(f'get_album {request.match_info}')
 
-    return json_response(albums.get_album(request.match_info.get('id', None)))
+    return json_response(await albums.get_album(request.match_info.get('id', None)))
 
 
 
@@ -33,7 +33,7 @@ async def get_album_media(request):
     LOG.debug(f'get_album_media {request.match_info}')
 
     return json_response(
-        albums.get_album_media(
+        await albums.get_album_media(
                 request.match_info.get('id'), 
                 request.query.get('sort', 'name'),
                 int(request.query.get('skip', 0)), 

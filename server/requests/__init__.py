@@ -6,12 +6,14 @@ from aiohttp import web
 from pymongo.cursor import Cursor
 
 
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, ObjectId):
+            return str(o)
+        if isinstance(o, Cursor):
+            return JSONEncoder().encode(list(o))
+        return json.JSONEncoder.default(self, o)
+
 
 def json_response(data):
-    if isinstance(data, Cursor):
-        list_cur = list(data)
-        json_data = json_util.dumps(list_cur) 
-        
-        return web.json_response(text=json_data)
-
-    return web.json_response(text=json_util.dumps(data))
+    return web.json_response(text=JSONEncoder().encode(data))

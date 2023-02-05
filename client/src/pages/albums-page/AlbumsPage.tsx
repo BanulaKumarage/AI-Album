@@ -28,8 +28,6 @@ export type AlbumsPageState = {
   error: any,
   isLoaded: boolean,
   albums: Array<any>,
-  anchorElNav?: any | null,
-  anchorElUser?: any | null,
 };
 
 export default function AlbumsPage(props: AlbumsPageProps) {
@@ -40,8 +38,6 @@ export default function AlbumsPage(props: AlbumsPageProps) {
     error: null,
     isLoaded: false,
     albums: [],
-    anchorElNav: null,
-    anchorElUser: null,
   });
 
   useEffect(() => {
@@ -61,96 +57,12 @@ export default function AlbumsPage(props: AlbumsPageProps) {
     )
   }, [])
 
-  const pages: any = [];
-
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-    updateState((draft) => {
-      draft.anchorElNav = event.currentTarget;
-    })
-  };
-
-  const handleCloseNavMenu = () => {
-    updateState((draft) => {
-      draft.anchorElNav = null;
-    })
-  };
-
   const changeAlbum = (album: string) => {
     navigate(`/albums/${album}`)
   }
 
   return (
     <>
-      <AppBar position="static">
-        <Container maxWidth="xl">
-          <Toolbar disableGutters>
-            <HomeIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
-            <Typography
-              variant="h6"
-              noWrap
-              component="a"
-              href="/"
-              sx={{
-                mr: 2,
-                display: { xs: 'none', md: 'flex' },
-                fontFamily: 'monospace',
-                fontWeight: 700,
-                letterSpacing: '.3rem',
-                color: 'inherit',
-                textDecoration: 'none',
-              }}
-            >
-              AI-ALBUM
-            </Typography>
-
-            <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-              <Menu
-                id="menu-appbar"
-                anchorEl={state.anchorElNav}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'left',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'left',
-                }}
-                open={Boolean(state.anchorElNav)}
-                onClose={handleCloseNavMenu}
-                sx={{
-                  display: { xs: 'block', md: 'none' },
-                }}
-              >
-                {_.map(pages, (page) => (
-                  <MenuItem key={page} onClick={handleCloseNavMenu}>
-                    <Typography textAlign="center">{page}</Typography>
-                  </MenuItem>
-                ))}
-              </Menu>
-            </Box>
-            <HomeIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
-            <Typography
-              variant="h5"
-              noWrap
-              component="a"
-              href=""
-              sx={{
-                mr: 2,
-                display: { xs: 'flex', md: 'none' },
-                flexGrow: 1,
-                fontFamily: 'monospace',
-                fontWeight: 700,
-                letterSpacing: '.3rem',
-                color: 'inherit',
-                textDecoration: 'none',
-              }}
-            >
-              AI-ALBUM
-            </Typography>
-          </Toolbar>
-        </Container>
-      </AppBar>
       <Grid container spacing={1} padding={1} textAlign={'center'}>
         <Grid item xs={4}>
           <Paper>
@@ -167,9 +79,9 @@ export default function AlbumsPage(props: AlbumsPageProps) {
                 _.map(_.get(state, 'albums'), (item: any) => {
                   return (
                     <ListItemButton
-                      key={`album-${item._id.$oid}`}
-                      selected={_.isEqual(item._id.$oid, album)}
-                      onClick={() => changeAlbum(item._id.$oid)}
+                      key={`album-${item._id}`}
+                      selected={_.isEqual(item._id, album)}
+                      onClick={() => changeAlbum(item._id)}
                     >
                       <ListItemAvatar>
                         <Avatar>

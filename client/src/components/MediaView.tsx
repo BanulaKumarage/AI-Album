@@ -5,8 +5,9 @@ import ImageListItem from '@mui/material/ImageListItem';
 import { useImmer } from 'use-immer';
 import { Waypoint } from 'react-waypoint';
 import * as _ from 'lodash'
-import fetchMediaByAlbum from '../api-calls/media';
-import { useNavigate } from 'react-router-dom';
+import { fetchMediaByAlbum } from '../api-calls/media';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from '@mui/material';
 
 
 export type MediaViewProps = { url: string };
@@ -21,7 +22,6 @@ export type MediaViewState = {
 };
 
 export default function MediaView(props: MediaViewProps) {
-  const navigate = useNavigate();
   const [state, updateState] = useImmer<MediaViewState>({
     sort: 'name',
     skip: 0,
@@ -76,13 +76,13 @@ export default function MediaView(props: MediaViewProps) {
       <Paper>
         <ImageList sx={{ width: '100%', height: '100%', margin: '0' }} cols={5} rowHeight={150}>
           {_.map(_.get(state, 'media'), (item: any, index: number) => (
-            <ImageListItem key={item.path} onClick={() => {navigate(`./media/${item._id.$oid}`)}}>
+            <ImageListItem component={Link} to={`./media/${item._id}`} key={item._id}>
               <img
-                src={`${process.env.REACT_APP_API}/thumbnail/${item.path}`}
-                srcSet={`${process.env.REACT_APP_API}/thumbnail/${item.path} 2x`}
+                src={`${process.env.REACT_APP_API}/thumbnail/${item._id}`}
+                srcSet={`${process.env.REACT_APP_API}/thumbnail/${item._id} 2x`}
                 alt={item.name}
                 loading="lazy"
-              />
+                />
             </ImageListItem>
           ))}
         </ImageList>

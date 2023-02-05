@@ -28,9 +28,16 @@ warnings.simplefilter("default")
 # TODO attach this bit to indexer
 SUPPORTED_IMAGE_FORMATS = ['jpeg', 'jpg', 'NEF', 'GPR']
 CWD = pathlib.Path(os.getcwd())
-LAVIS = str(pathlib.Path(CWD).joinpath('LAVIS'))
+LAVIS = pathlib.Path(CWD).joinpath('LAVIS').as_posix()
+DLIB = next(pathlib.Path(CWD).joinpath('dlib').glob('dist/*.egg')).as_posix()
+FACE_RECOGNITION_MODELS = pathlib.Path(CWD).joinpath('face_recognition_models').as_posix()
+FACE_RECOGNITION = pathlib.Path(CWD).joinpath('face_recognition').as_posix()
 
 sys.path.append(LAVIS)
+sys.path.append(DLIB)
+sys.path.append(FACE_RECOGNITION_MODELS)
+sys.path.append(FACE_RECOGNITION)
+
 
 def load_logger():
     log_file = Path(__file__).parent / "logger.yml"

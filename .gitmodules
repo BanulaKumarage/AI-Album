@@ -1,3 +1,12 @@
 [submodule "LAVIS"]
 	path = LAVIS
 	url = https://github.com/salesforce/LAVIS.git
+[submodule "dlib"]
+	path = dlib
+	url = https://github.com/davisking/dlib.git
+[submodule "face_recognition"]
+	path = face_recognition
+	url = https://github.com/ageitgey/face_recognition.git
+[submodule "face_recognition_models"]
+	path = face_recognition_models
+	url = https://github.com/ageitgey/face_recognition_models.git

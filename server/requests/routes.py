@@ -16,12 +16,13 @@ routes = [
 
     # Media queries
     web.get('/media', media.get_media),
+    web.get('/media/{id}', media.get_media_by_id),
 
     # indexing
     # web.get('/media', media.get_media),
 
     # static
     web.static('/static', str(pathlib.Path(CWD).joinpath('data')), follow_symlinks=True),
-    web.get('/thumbnail/{none:.*}', utils.fetch_thumbnail),
-    web.get('/fullsize/{none:.*}', utils.fetch_media)
+    web.get('/thumbnail/{id}', media.fetch_thumbnail),
+    web.get('/fullsize/{id}', media.fetch_media)
 ]

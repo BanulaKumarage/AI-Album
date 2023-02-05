@@ -8,30 +8,30 @@ from server.db import client
 
 
 
-def create_album(name: str, directory: str, parent_album: Optional[str]) -> InsertOneResult:
+async def create_album(name: str, directory: str, parent_album: Optional[str]) -> InsertOneResult:
     document = {
         'name': name,
         'directory': directory,
         'parentAlbum': parent_album,
     }
-    result = client.ai_album.albums.insert_one(document)
+    result = await client.ai_album.albums.insert_one(document)
 
     return result
 
 
-def get_album(id: str):
-    result = client.ai_album.albums.find_one({'_id': ObjectId(id)})
+async def get_album(id: str):
+    result = await client.ai_album.albums.find_one({'_id': ObjectId(id)})
 
     return result
 
 
-def get_albums(query: Any, sort: Any, skip: int, limit: int):
-    result = client.ai_album.albums.find(query).sort(sort).skip(skip).limit(limit)
+async def get_albums(query: Any, sort: Any, skip: int, limit: int):
+    result = await client.ai_album.albums.find(query).sort(sort).skip(skip).limit(limit).to_list(None)
 
     return result
 
 
-def get_album_media(id: str, sort: Any, skip: int, limit: int):
-    result = client.ai_album.media.find({'albumId': ObjectId(id)}).sort(sort).skip(skip).limit(limit)
+async def get_album_media(id: str, sort: Any, skip: int, limit: int):
+    result = await client.ai_album.media.find({'albumId': ObjectId(id)}).sort(sort).skip(skip).limit(limit).to_list(None)
 
     return result
