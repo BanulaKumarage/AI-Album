@@ -1,10 +1,21 @@
 # AI-Album
 
-Hobby project in progress.
+Hobby project in progress. Everything is still in progress. Re-use at your own risk!
 
-Everything is still in progress.
+### Implemented features
+    - Image indexing (recursive album creation and loading to database)
+    - Image captioning with multiple GPUs
+
+### Upcoming features
+    - Image face annotation
+    - Face index
+
+
+![Image](assets/test.png)
 
 ## Dependencies
+
+### python dependencies
 
 ```bash
 $ pip install aiohttp
@@ -18,6 +29,12 @@ $ pip install networkx
 $ mamba install pytorch torchvision cudnn torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
 $ pip install cryptography==38.0.4
 $ pip install aiohttp_cors
+```
+
+### Building DLIB library
+
+```bash
+./build.sh
 ```
 
 ## Running the dev server
