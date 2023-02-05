@@ -103,7 +103,7 @@ export default function MediaPage() {
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                   >
                     <TableCell component="th" scope="row">
-                      Generated Caption
+                      Generated caption
                     </TableCell>
                     <TableCell align="left">
                       {_.map(state.metadata.caption.split('.'), (sentence, index) => {
