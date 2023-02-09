@@ -3,8 +3,7 @@ from typing import Any, Iterable, Optional, Sequence, Tuple
 from pymongo.results import InsertOneResult
 from bson import ObjectId
 
-from server.db import client
-
+from server.db import client, async_client
 
 
 
@@ -17,6 +16,16 @@ async def create_album(name: str, directory: str, parent_album: Optional[str]) -
     result = await client.ai_album.albums.insert_one(document)
 
     return result
+
+
+def create_album_sync(name: str, directory: str, parent_album: Optional[str]) -> InsertOneResult:
+    document = {
+        'name': name,
+        'directory': directory,
+        'parentAlbum': parent_album,
+    }
+
+    return async_client.ai_album.albums.insert_one(document)
 
 
 async def get_album(id: str):

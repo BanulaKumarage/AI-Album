@@ -76,7 +76,7 @@ export default function MediaView(props: MediaViewProps) {
       <Paper>
         <ImageList sx={{ width: '100%', height: '100%', margin: '0' }} cols={5} rowHeight={150}>
           {_.map(_.get(state, 'media'), (item: any, index: number) => (
-            <ImageListItem component={Link} to={`./media/${item._id}`} key={item._id}>
+            <ImageListItem component={Link} to={`./media/${item._id}`} state={state} key={item._id}>
               <img
                 src={`${process.env.REACT_APP_API}/thumbnail/${item._id}`}
                 srcSet={`${process.env.REACT_APP_API}/thumbnail/${item._id} 2x`}

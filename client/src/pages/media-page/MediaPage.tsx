@@ -64,7 +64,7 @@ export default function MediaPage() {
     <>
       <Container>
         <Grid container item xs={1} p={1} m={1}>
-          <Button variant="outlined" color='inherit' onClick={() => navigate('../')}>
+          <Button variant="outlined" color='inherit' onClick={() => navigate(-1)}>
             <ArrowBackIcon />
           </Button>
         </Grid>

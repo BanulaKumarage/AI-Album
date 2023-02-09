@@ -15,50 +15,15 @@ LOG = logging.getLogger(__name__)
 DAG_ROOT = 'R'
 
 
-# docs - https://stackoverflow.com/questions/24937495/how-can-i-calculate-a-hash-for-a-filesystem-directory-using-python
-def GetHashofDirs(directory, verbose=0):
-    import hashlib, os
-    SHAhash = hashlib.md5()
-    if not os.path.exists (directory):
-        return -1
-
-    try:
-        for root, dirs, files in os.walk(directory):
-            for names in files:
-                filepath = os.path.join(root,names)
-                
-                try:
-                    f1 = open(filepath, 'rb')
-                except:
-                    # You can't open the file for some reason
-                    f1.close()
-                    continue
-
-                while 1:
-                    # Read file in as little chunks
-                    buf = f1.read(4096)
-                    if not buf : break
-                    SHAhash.update(hashlib.md5(buf).hexdigest())
-                f1.close()
-
-    except:
-        import traceback
-        # Print the stack traceback
-        traceback.print_exc()
-        return -2
-
-    return SHAhash.hexdigest()
-
-
 def record_album(name: str, parent: Optional[str]):
     LOG.debug(f'Recording album "{name}" as child of "{parent}"')
-    result = albums.create_album(name, name, parent)
+    result = albums.create_album_sync(name, name, parent)
     return result.inserted_id
 
 
 def record_media(name: str, path: str, album_id: Optional[str]):
     LOG.debug(f'Recording media "{name}" for album "{album_id}" from path "{path}"')
-    result = media.create_media(name, path, album_id)
+    result = media.create_media_sync(name, path, album_id)
     return result.inserted_id
 
 

@@ -47,3 +47,5 @@ def load_logger():
 
 thread_pool_executor = ThreadPoolExecutor(max_workers=8)
 process_pool_executor = ProcessPoolExecutor(max_workers=8)
+
+load_logger()

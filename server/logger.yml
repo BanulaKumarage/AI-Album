@@ -17,7 +17,10 @@ loggers:
         level: DEBUG
         handlers: [ console ]
         propagate: True
-    aiohttp:
+    fastapi:
+        level: INFO
+        handlers: [ console ]
+    uvicorn:
         level: INFO
         handlers: [ console ]
 
