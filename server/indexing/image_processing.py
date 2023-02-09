@@ -31,9 +31,9 @@ def captioning_worker(dir, workers: int, worker_id: int, device_name: str):
         'name', 0, 0)
         ):
 
-        if kill_me.is_set():
-            LOG.debug(f'WORKER killed')
-            return
+        # if kill_me.is_set():
+        #     LOG.debug(f'WORKER killed')
+        #     return
 
         if n % workers == worker_id:
             processed += 1
