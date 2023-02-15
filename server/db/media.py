@@ -16,17 +16,6 @@ async def create_media(name: str, path: str, album_id: Optional[str]):
     return result
 
 
-def create_media_sync(name: str, path: str, album_id: Optional[str]):
-    document = {
-        'name': name,
-        'path': path,
-        'albumId': album_id,
-    }
-    result = async_client.ai_album.media.insert_one(document)
-
-    return result
-
-
 async def get_media_by_id(query: Any, projection: Any):
     result = await client.ai_album.media.find_one(query, projection=projection)
     return result

@@ -7,7 +7,8 @@ mongo_db_database = 'ai_album'
 mongo_db_auth = 'admin'
 
 # gpu configs
-captioning_workers_per_gpu = 4
+image_captioning_workers_per_gpu = 4
+face_dtection_workers_per_gpu = 1
 
 # album 
 thumbnail_resolution = 250, 250

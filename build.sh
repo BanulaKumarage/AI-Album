@@ -16,4 +16,4 @@ cd build
 cmake .. -DDLIB_USE_CUDA=1 -DUSE_AVX_INSTRUCTIONS=1 -DCUDAToolkit_ROOT=$(dirname $(which nvcc))
 cmake --build .
 cd ..
-python setup.py build --set DLIB_USE_CUDA=1
+python setup.py install --prefix dist --set DLIB_USE_CUDA=1

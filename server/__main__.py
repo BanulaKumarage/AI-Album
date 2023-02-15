@@ -3,46 +3,60 @@ from contextlib import suppress
 import logging
 
 import asyncio
+from threading import Event
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from server import CWD, thread_pool_executor, process_pool_executor
-from server.db import client
+from server.db import async_client, client
 from server.routers import albums_router, media_router
-from server.indexing import file_indexer, image_processing
+from server.indexing import file_indexer, image_captioning, face_recognition
 
 
 LOG = logging.getLogger(__name__)
 BKG_TASKS = dict()
+TASK_KILL = Event()
 
-# client.ai_album.drop_collection('albums')
-# client.ai_album.drop_collection('media')
+# async_client.ai_album.drop_collection('albums')
+# async_client.ai_album.drop_collection('media')
+# async_client.ai_album.media.update_many(
+#     {
+#         "$and": [
+#             {"caption": {"$exists": True}},
+#             {"path": {"$regex": "jpg$|JPG$|JPEG$|jpeg$"}},
+#         ]
+#     },
+#     {"$unset": {"caption": ""}},
+# )
+
+async_client.ai_album.albums.create_index("directory", unique=True)
+async_client.ai_album.media.create_index("path", unique=False)
 
 
 async def end_tasks():
-    LOG.debug('Shutting down')
-    client.close()
+    LOG.debug('Shutting down background tasks')
     thread_pool_executor.shutdown(wait=False)
     process_pool_executor.shutdown(wait=False)
+    TASK_KILL.set()
 
-    # TODO there is no way to cancel tasks running in executors, find a workaround
-    # https://stackoverflow.com/questions/26413613/asyncio-is-it-possible-to-cancel-a-future-been-run-by-an-executor
-    # BKG_TASKS['file_indexer'].cancel()
-    # BKG_TASKS['image_processing'].cancel()
+    for _, task in BKG_TASKS.items():
+        task.cancel()
 
-    # with suppress(asyncio.CancelledError):
-    #     await BKG_TASKS['file_indexer']
-        # await BKG_TASKS['image_processing']
-    return
+    with suppress(asyncio.CancelledError):
+        for _, task in BKG_TASKS.items():
+            await task
+    async_client.close()
+    client.close()
 
 
 async def start_tasks():
-    LOG.debug('Starting up')
+    LOG.debug('Starting background tasks')
     loop = asyncio.get_running_loop()
     executor = ThreadPoolExecutor(max_workers=8)
     # BKG_TASKS['file_indexer'] = loop.run_in_executor(executor, file_indexer.run_indexing, CWD)
-    # BKG_TASKS['image_processing'] = loop.run_in_executor(executor, image_processing.run_image_processing, CWD)
+    # BKG_TASKS['image_captioning'] = loop.run_in_executor(executor, image_captioning.run_image_captioning, CWD, TASK_KILL)
+    # BKG_TASKS['face_recognition'] = loop.run_in_executor(executor, face_recognition.run_face_detection, CWD, TASK_KILL)
 
 
 def create_app():  

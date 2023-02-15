@@ -18,18 +18,14 @@ async def create_album(name: str, directory: str, parent_album: Optional[str]) -
     return result
 
 
-def create_album_sync(name: str, directory: str, parent_album: Optional[str]) -> InsertOneResult:
-    document = {
-        'name': name,
-        'directory': directory,
-        'parentAlbum': parent_album,
-    }
-
-    return async_client.ai_album.albums.insert_one(document)
-
-
 async def get_album(id: str):
     result = await client.ai_album.albums.find_one({'_id': ObjectId(id)})
+
+    return result
+
+
+async def get_album_sync(query: dict):
+    result = await client.ai_album.albums.find_one(query)
 
     return result
 

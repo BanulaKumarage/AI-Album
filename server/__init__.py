@@ -20,8 +20,11 @@ import pathlib
 import os
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
+from pillow_heif import register_heif_opener
+
 
 logging.captureWarnings(True)
+
 warnings.simplefilter("default")
 
 
@@ -49,3 +52,4 @@ thread_pool_executor = ThreadPoolExecutor(max_workers=8)
 process_pool_executor = ProcessPoolExecutor(max_workers=8)
 
 load_logger()
+register_heif_opener()

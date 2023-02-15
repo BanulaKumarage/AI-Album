@@ -6,16 +6,15 @@ import { useImmer } from 'use-immer';
 import { Waypoint } from 'react-waypoint';
 import * as _ from 'lodash'
 import { fetchMediaByAlbum } from '../api-calls/media';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@mui/material';
+import { Link } from 'react-router-dom';
 
 
 export type MediaViewProps = { url: string };
-export type MediaViewState = { 
+export type MediaViewState = {
   sort: string;
   skip: number;
-  limit: number; 
-  media: Array<any>; 
+  limit: number;
+  media: Array<any>;
   isLoaded: boolean;
   error: any;
   mediaUrl: string;
@@ -76,21 +75,21 @@ export default function MediaView(props: MediaViewProps) {
       <Paper>
         <ImageList sx={{ width: '100%', height: '100%', margin: '0' }} cols={5} rowHeight={150}>
           {_.map(_.get(state, 'media'), (item: any, index: number) => (
-            <ImageListItem component={Link} to={`./media/${item._id}`} state={state} key={item._id}>
+            <ImageListItem component={Link} to={`./media/${item._id}`} state={state} key={`image-list-${item._id}`} style={{ overflow: 'hidden' }}>
               <img
                 src={`${process.env.REACT_APP_API}/thumbnail/${item._id}`}
                 srcSet={`${process.env.REACT_APP_API}/thumbnail/${item._id} 2x`}
                 alt={item.name}
                 loading="lazy"
-                />
+              />
             </ImageListItem>
           ))}
         </ImageList>
         {
           !_.isEmpty(state.media) && <Waypoint
-          onEnter={() => atEnd()}
-          topOffset={'10%'}
-        />}
+            onEnter={() => atEnd()}
+            topOffset={'10%'}
+          />}
       </Paper>
     </>
   )

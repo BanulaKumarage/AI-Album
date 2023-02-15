@@ -19,6 +19,7 @@ Hobby project in progress. Everything is still in progress. Re-use at your own r
 
 ```bash
 $ pip install "fastapi[all]"
+$ pip install pillow pillow-heif
 $ pip install pymongo
 $ pip install pydantic-mongo
 $ pip install jsons

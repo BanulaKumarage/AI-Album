@@ -4,9 +4,9 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useImmer } from 'use-immer';
 import { useNavigate, useParams } from 'react-router-dom';
 import * as _ from 'lodash'
-import { Button, Container, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Avatar, Button, Container, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import { fetchMediaById } from '../../api-calls/media';
-import { result } from 'lodash';
+import { Stack } from '@mui/system';
 
 export type MediaPageState = {
   showImage: boolean;
@@ -35,13 +35,7 @@ export default function MediaPage() {
     metadata: null
   });
   const mediaUrl = `${process.env.REACT_APP_API}/fullsize/${media}`
-  const rows = [
-    createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-    createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-    createData('Eclair', 262, 16.0, 24, 6.0),
-    createData('Cupcake', 305, 3.7, 67, 4.3),
-    createData('Gingerbread', 356, 16.0, 49, 3.9),
-  ];
+  const faceUrl = `${process.env.REACT_APP_API}/thumbnail/${media}`
 
   useEffect(() => {
     fetchMediaById(`${media}`).then(
@@ -68,7 +62,7 @@ export default function MediaPage() {
             <ArrowBackIcon />
           </Button>
         </Grid>
-        <Grid container item xs={12} p={1} m={1}>
+        <Grid container item xs={12} p={1} m={1} alignItems={'center'} justifyContent={'center'}>
           <Paper>
             <img onClick={() => updateState((draft) => { draft.showImage = true; })} src={mediaUrl} alt="Media" style={{ maxHeight: '100%', maxWidth: '100%', display: 'block', margin: '10px auto' }} />
           </Paper>
@@ -98,7 +92,7 @@ export default function MediaPage() {
                       {state.metadata.name}
                     </TableCell>
                   </TableRow>
-                  <TableRow
+                  {_.has(state.metadata, 'caption') && <TableRow
                     key={`${media}-caption`}
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                   >
@@ -106,28 +100,48 @@ export default function MediaPage() {
                       Generated caption
                     </TableCell>
                     <TableCell align="left">
-                      {_.map(state.metadata.caption.split('.'), (sentence, index) => {
+                      {_.map(state.metadata.caption.split('\n'), (sentence, index) => {
                         return (
                           <div key={`sentence-${index}`}>
-                            {_.capitalize(sentence)}
+                            {sentence}
+                            <hr />
                           </div>
                         )
                       })}
                     </TableCell>
-                  </TableRow>
+                  </TableRow>}
+                  {_.has(state.metadata, 'faces') && <TableRow
+                    key={`${media}-people`}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row">
+                      Faces detected
+                    </TableCell>
+                    <TableCell align="left">
+                      <Stack direction="row" spacing={2}>
+                        {_.map(state.metadata.faces, (face, index) => {
+                          return (
+                            <Avatar sx={{ width: 100, height: 100 }} key={`face-${index}`} alt="" src={`${faceUrl}?top=${face[0]}&right=${face[1]}&bottom=${face[2]}&left=${face[3]}`} />
+                          )
+                        })}
+                      </Stack>
+                    </TableCell>
+                  </TableRow>}
                 </TableBody>
               </Table>
             </TableContainer>
           </Grid>
         </Container>
       }
-      {state.showImage && <ImageViewer
-        src={[mediaUrl]}
-        currentIndex={0}
-        disableScroll={false}
-        closeOnClickOutside={true}
-        onClose={() => { updateState((draft) => { draft.showImage = false; }) }}
-      />}
+      {
+        state.showImage && <ImageViewer
+          src={[mediaUrl]}
+          currentIndex={0}
+          disableScroll={false}
+          closeOnClickOutside={true}
+          onClose={() => { updateState((draft) => { draft.showImage = false; }) }}
+        />
+      }
     </>
   )
 }
