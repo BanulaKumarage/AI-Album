@@ -87,7 +87,7 @@ def run_image_captioning(task_dir, killer):
         {
             "$and": [
                 {"caption": {"$exists": False}},
-                {"path": {"$regex": "jpg$|JPG$|JPEG$|jpeg$"}},
+                {"path": {"$regex": "jpg$|JPG$|JPEG$|jpeg$|HEIC$|heic$"}},
             ]
         },
         {"_id": 1, "path": 1},
