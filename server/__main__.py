@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from server import CWD, thread_pool_executor, process_pool_executor
 from server.db import async_client, client
 from server.routers import albums_router, media_router
-from server.indexing import file_indexer, image_captioning, face_recognition
+from server.indexing import face_detection, file_indexer, image_captioning
 
 
 LOG = logging.getLogger(__name__)
@@ -24,10 +24,10 @@ TASK_KILL = Event()
 #     {
 #         "$and": [
 #             {"caption": {"$exists": True}},
-#             {"path": {"$regex": "jpg$|JPG$|JPEG$|jpeg$"}},
+#             {"path": {"$regex": "jpg$|JPG$|JPEG$|jpeg$|HEIC$|heic$"}},
 #         ]
 #     },
-#     {"$unset": {"caption": ""}},
+#     {"$unset": {"caption": "", "faces": ""}},
 # )
 
 async_client.ai_album.albums.create_index("directory", unique=True)
@@ -56,7 +56,7 @@ async def start_tasks():
     executor = ThreadPoolExecutor(max_workers=8)
     # BKG_TASKS['file_indexer'] = loop.run_in_executor(executor, file_indexer.run_indexing, CWD)
     # BKG_TASKS['image_captioning'] = loop.run_in_executor(executor, image_captioning.run_image_captioning, CWD, TASK_KILL)
-    # BKG_TASKS['face_recognition'] = loop.run_in_executor(executor, face_recognition.run_face_detection, CWD, TASK_KILL)
+    # BKG_TASKS['face_recognition'] = loop.run_in_executor(executor, face_detection.run_face_detection, CWD, TASK_KILL)
 
 
 def create_app():  

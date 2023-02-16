@@ -8,7 +8,10 @@ mongo_db_auth = 'admin'
 
 # gpu configs
 image_captioning_workers_per_gpu = 4
-face_dtection_workers_per_gpu = 1
+face_detection_workers_per_gpu = 1
+face_detection_max_width = 500
+face_detection_max_height = 500
+face_detection_batch_size = 64
 
 # album 
 thumbnail_resolution = 250, 250
