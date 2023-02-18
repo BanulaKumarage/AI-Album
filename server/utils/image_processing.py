@@ -35,7 +35,7 @@ def crop_image(image: Image, top, right, bottom, left):
 
 
 def convert_to_thumbnail(impath, top, right, bottom, left):
-    im = Image.open(impath)
+    im = Image.open(impath).convert('RGB')
     im = rotate_image(im)
 
     if all([top >= 0, right >= 0, bottom >= 0, left >= 0]):
@@ -49,7 +49,7 @@ def convert_to_thumbnail(impath, top, right, bottom, left):
 
 
 def convert_to_image_stream(impath):
-    im = Image.open(impath)
+    im = Image.open(impath).convert('RGB')
     im = rotate_image(im)
     stream = BytesIO()
     im.save(stream, "jpeg")

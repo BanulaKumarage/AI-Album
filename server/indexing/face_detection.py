@@ -13,6 +13,7 @@ from server.conf import (
     face_detection_max_width,
     face_detection_max_height,
     face_detection_batch_size,
+    supported_image_types,
 )
 from server.indexing.utils import DataLoader
 from server.utils import image_processing
@@ -117,7 +118,9 @@ class FaceDetectionWorker(Thread):
                     self.processed += BATCH_SIZE
                     batch_faces = face_recognition.batch_face_locations(batch_images)
 
-                    for entry, ratio, faces in zip(batch_entries, batch_ratios, batch_faces):
+                    for entry, ratio, faces in zip(
+                        batch_entries, batch_ratios, batch_faces
+                    ):
                         faces = resize_bounding_boxes(faces, ratio)
                         face_count += len(faces)
                         record_faces(entry, faces)
@@ -130,7 +133,9 @@ class FaceDetectionWorker(Thread):
                 self.processed += len(batch_images)
                 batch_faces = face_recognition.batch_face_locations(batch_images)
 
-                for entry, ratio, faces in zip(batch_entries, batch_ratios, batch_faces):
+                for entry, ratio, faces in zip(
+                    batch_entries, batch_ratios, batch_faces
+                ):
                     faces = resize_bounding_boxes(faces, ratio)
                     face_count += len(faces)
                     record_faces(entry, faces)
@@ -154,7 +159,11 @@ def run_face_detection(task_dir, killer):
         {
             "$and": [
                 {"faces": {"$exists": False}},
-                {"path": {"$regex": "jpg$|JPG$|JPEG$|jpeg$|HEIC$|heic$"}},
+                {
+                    "path": {
+                        "$regex": "|".join([f"{fmt}$" for fmt in supported_image_types])
+                    }
+                },
             ]
         },
         {"_id": 1, "path": 1},

@@ -7,7 +7,7 @@ import torch
 from lavis.models import load_model_and_preprocess
 
 from server.db import async_client
-from server.conf import image_captioning_workers_per_gpu
+from server.conf import image_captioning_workers_per_gpu, supported_image_types
 from server.indexing.utils import DataLoader
 
 
@@ -87,7 +87,11 @@ def run_image_captioning(task_dir, killer):
         {
             "$and": [
                 {"caption": {"$exists": False}},
-                {"path": {"$regex": "jpg$|JPG$|JPEG$|jpeg$|HEIC$|heic$"}},
+                {
+                    "path": {
+                        "$regex": "|".join([f"{fmt}$" for fmt in supported_image_types])
+                    }
+                },
             ]
         },
         {"_id": 1, "path": 1},
