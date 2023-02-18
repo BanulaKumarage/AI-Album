@@ -57,21 +57,21 @@ export default function MediaPage() {
   return (
     <>
       <Container>
-        <Grid container item xs={1} p={1} m={1}>
+        <Grid container item xs={1} p={0} my={1}>
           <Button variant="outlined" color='inherit' onClick={() => navigate(-1)}>
             <ArrowBackIcon />
           </Button>
         </Grid>
-        <Grid container item xs={12} p={1} m={1} alignItems={'center'} justifyContent={'center'}>
+        <Grid container item xs={12} p={0} mb={1} alignItems={'center'} justifyContent={'center'}>
           <Paper>
-            <img onClick={() => updateState((draft) => { draft.showImage = true; })} src={mediaUrl} alt="Media" style={{ maxHeight: '100%', maxWidth: '100%', display: 'block', margin: '10px auto' }} />
+            <img onClick={() => updateState((draft) => { draft.showImage = true; })} src={mediaUrl} alt="Media" style={{ maxHeight: '100%', maxWidth: '100%', display: 'block', margin: '0 auto' }} />
           </Paper>
         </Grid>
       </Container>
       {
         state.isLoaded &&
         <Container>
-          <Grid container item xs={12} m={1} p={1}>
+          <Grid container item xs={12} m={0} p={0}>
             <TableContainer component={Paper}>
               <Table aria-label="simple table">
                 <TableHead>

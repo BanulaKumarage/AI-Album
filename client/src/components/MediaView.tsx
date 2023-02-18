@@ -72,10 +72,10 @@ export default function MediaView(props: MediaViewProps) {
 
   return (
     <>
-      <Paper>
-        <ImageList sx={{ width: '100%', height: '100%', margin: '0' }} cols={5} rowHeight={150}>
+      <Paper sx={{ display: { xs: 'none', md: 'flex' } }}>
+        <ImageList sx={{ width: '100%', height: '100%', margin: '0' }} cols={5} rowHeight={'auto'}>
           {_.map(_.get(state, 'media'), (item: any, index: number) => (
-            <ImageListItem component={Link} to={`./media/${item._id}`} state={state} key={`image-list-${item._id}`} style={{ overflow: 'hidden' }}>
+            <ImageListItem component={Link} to={`./media/${item._id}`} relative={'route'} state={state} key={`image-list-${item._id}`} style={{ overflow: 'hidden' }}>
               <img
                 src={`${process.env.REACT_APP_API}/thumbnail/${item._id}`}
                 srcSet={`${process.env.REACT_APP_API}/thumbnail/${item._id} 2x`}
@@ -85,12 +85,27 @@ export default function MediaView(props: MediaViewProps) {
             </ImageListItem>
           ))}
         </ImageList>
-        {
-          !_.isEmpty(state.media) && <Waypoint
-            onEnter={() => atEnd()}
-            topOffset={'10%'}
-          />}
       </Paper>
+      <Paper sx={{ display: { xs: 'flex', md: 'none' } }}>
+        <ImageList sx={{ width: '100%', height: '100%', margin: '0' }} cols={3} rowHeight={'auto'}>
+          {_.map(_.get(state, 'media'), (item: any, index: number) => (
+            <ImageListItem component={Link} to={`./media/${item._id}`} relative={'route'} state={state} key={`image-list-${item._id}`} style={{ overflow: 'hidden' }}>
+              <img
+                src={`${process.env.REACT_APP_API}/thumbnail/${item._id}`}
+                srcSet={`${process.env.REACT_APP_API}/thumbnail/${item._id} 2x`}
+                alt={item.name}
+                loading="lazy"
+              />
+            </ImageListItem>
+          ))}
+        </ImageList>
+      </Paper>
+      {
+        !_.isEmpty(state.media) && <Waypoint
+          onEnter={() => atEnd()}
+          topOffset={'10%'}
+        />
+      }
     </>
   )
 };

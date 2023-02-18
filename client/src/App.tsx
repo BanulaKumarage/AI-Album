@@ -6,10 +6,12 @@ import {
   Navigate,
   RouterProvider,
 } from "react-router-dom";
-import AlbumsPage from './pages/albums-page/AlbumsPage';
+import AlbumMediaPage from './pages/albums-page/AlbumMediaPage';
 import MediaPage from './pages/media-page/MediaPage';
 import * as _ from 'lodash'
 import NavWrapperPage from './pages/nav-wrapper-page/NavWrapperPage';
+import SideBarWrapperPage from './pages/nav-wrapper-page/SideBarWrapperPage';
+import FacesPage from './pages/faces-page/FacesPage';
 
 
 export type MainPageState = {
@@ -20,22 +22,36 @@ export type MainPageState = {
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/albums/all-media" replace />
+    element: <Navigate to="explore/albums/all-media" replace />
   },
   {
-    path: "/",
-    element: <NavWrapperPage/>,
+    path: "/explore",
+    element: <NavWrapperPage />,
     children: [
       {
-        path: "/albums",
-        element: <Navigate to={'/albums/all-media'} />
+        path: "",
+        element: <SideBarWrapperPage />,
+        children: [
+          {
+            path: "",
+            element: <Navigate to="albums/all-media" replace />
+          },
+          {
+            path: "albums",
+            element: <Navigate to={'albums/all-media'} />
+          },
+          {
+            path: "albums/:album",
+            element: <AlbumMediaPage />,
+          },
+          {
+            path: "faces",
+            element: <FacesPage />,
+          }
+        ]
       },
       {
-        path: "/albums/:album",
-        element: <AlbumsPage />
-      },
-      {
-        path: "/albums/:album/media/:media",
+        path: "albums/:album/media/:media",
         element: <MediaPage />
       }
     ]
@@ -44,7 +60,7 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-      <RouterProvider router={router}/>
+    <RouterProvider router={router} />
   );
 }
 
