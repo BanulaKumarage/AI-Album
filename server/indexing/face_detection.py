@@ -39,11 +39,31 @@ def resize_bounding_boxes(faces, ratio):
     return faces
 
 
-def record_faces(entry, faces):
+def record_faces(entry, faces, encodings):
     async_client.ai_album.media.update_one(
         {"_id": entry["_id"]},
-        {"$set": {"faces": faces}},
+        {"$set": {"faces": faces, "faceEncodings": encodings}},
     )
+
+
+def process_batch(batch_images, batch_entries, batch_ratios):
+    face_count = 0
+    batch_faces = face_recognition.batch_face_locations(batch_images, number_of_times_to_upsample=2, batch_size=face_detection_batch_size)
+
+    for image, entry, ratio, faces in zip(
+        batch_images, batch_entries, batch_ratios, batch_faces
+    ):
+        encodings = [
+            enc.tolist()
+            for enc in face_recognition.face_encodings(
+                image, known_face_locations=faces, num_jitters=1, model="large"
+            )
+        ]
+        faces = resize_bounding_boxes(faces, ratio)
+        face_count += len(faces)
+        record_faces(entry, faces, encodings)
+
+    return face_count
 
 
 class FaceDetectionWorker(Thread):
@@ -116,33 +136,19 @@ class FaceDetectionWorker(Thread):
 
                 if self.batch and len(batch_images) == BATCH_SIZE:
                     self.processed += BATCH_SIZE
-                    batch_faces = face_recognition.batch_face_locations(batch_images)
-
-                    for entry, ratio, faces in zip(
-                        batch_entries, batch_ratios, batch_faces
-                    ):
-                        faces = resize_bounding_boxes(faces, ratio)
-                        face_count += len(faces)
-                        record_faces(entry, faces)
-
+                    face_count += process_batch(
+                        batch_images, batch_entries, batch_ratios
+                    )
                     batch_images = []
                     batch_ratios = []
                     batch_entries = []
 
-            if self.batch and len(batch_images) > 0:
-                self.processed += len(batch_images)
-                batch_faces = face_recognition.batch_face_locations(batch_images)
+            self.processed += len(batch_images)
+            face_count += process_batch(batch_images, batch_entries, batch_ratios)
+            batch_images = []
+            batch_ratios = []
+            batch_entries = []
 
-                for entry, ratio, faces in zip(
-                    batch_entries, batch_ratios, batch_faces
-                ):
-                    faces = resize_bounding_boxes(faces, ratio)
-                    face_count += len(faces)
-                    record_faces(entry, faces)
-
-                batch_images = []
-                batch_ratios = []
-                batch_entries = []
             if self.batch:
                 LOG.debug(f"Detected {face_count} faces in {BATCH_SIZE} images")
 

@@ -24,8 +24,7 @@ TASK_KILL = Event()
 # async_client.ai_album.media.update_many(
 #     {
 #         "$and": [
-#             {"caption": {"$exists": True}},
-#             {"path": {"$regex": ""|".join([f'{fmt}$' for fmt in supported_image_types])"}},
+#             {"path": {"$regex": "|".join([f'{fmt}$' for fmt in supported_image_types])}},
 #         ]
 #     },
 #     {"$unset": {"caption": "", "faces": ""}},
@@ -59,7 +58,7 @@ async def start_tasks():
     executor = ThreadPoolExecutor(max_workers=8)
     # BKG_TASKS['file_indexer'] = loop.run_in_executor(executor, file_indexer.run_indexing, CWD)
     # BKG_TASKS['image_captioning'] = loop.run_in_executor(executor, image_captioning.run_image_captioning, CWD, TASK_KILL)
-    # BKG_TASKS['face_recognition'] = loop.run_in_executor(executor, face_detection.run_face_detection, CWD, TASK_KILL)
+    BKG_TASKS['face_recognition'] = loop.run_in_executor(executor, face_detection.run_face_detection, CWD, TASK_KILL)
 
 
 def create_app():
