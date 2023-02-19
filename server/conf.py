@@ -11,7 +11,7 @@ image_captioning_workers_per_gpu = 4
 face_detection_workers_per_gpu = 1
 face_detection_max_width = 500
 face_detection_max_height = 500
-face_detection_batch_size = 16
+face_detection_batch_size = 128
 
 # album
 thumbnail_resolution = 250, 250

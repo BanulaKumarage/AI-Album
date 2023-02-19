@@ -35,11 +35,13 @@ LAVIS = pathlib.Path(CWD).joinpath('LAVIS').as_posix()
 DLIB = next(pathlib.Path(CWD).joinpath('dlib').glob('dist/*.egg')).as_posix()
 FACE_RECOGNITION_MODELS = pathlib.Path(CWD).joinpath('face_recognition_models').as_posix()
 FACE_RECOGNITION = pathlib.Path(CWD).joinpath('face_recognition').as_posix()
+FACENET_PYTORCH = pathlib.Path(CWD).joinpath('facenet_pytorch').as_posix()
 
 sys.path.append(LAVIS)
 sys.path.append(DLIB)
 sys.path.append(FACE_RECOGNITION_MODELS)
 sys.path.append(FACE_RECOGNITION)
+# sys.path.append(FACENET_PYTORCH)
 
 
 def load_logger():

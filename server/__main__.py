@@ -11,7 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from server import CWD, thread_pool_executor, process_pool_executor
 from server.db import async_client, client
 from server.routers import albums_router, media_router
-from server.indexing import face_detection, file_indexer, image_captioning
+from server.indexing import image_captioning
+from server.indexing import face_detection
+from server.indexing import file_indexer
 from server.conf import supported_image_types
 
 

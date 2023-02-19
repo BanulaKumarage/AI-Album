@@ -1,6 +1,7 @@
 import pathlib
 import logging
 from threading import Event, Thread
+import gc
 
 from PIL import Image
 import torch
@@ -61,9 +62,10 @@ class CaptioningWorker(Thread):
                     .unsqueeze(0)
                     .to(self.device_name)
                 )
-                captions = self.model.generate(
-                    {"image": image}, use_nucleus_sampling=True, num_captions=5
-                )
+                with torch.no_grad():
+                    captions = self.model.generate(
+                        {"image": image}, use_nucleus_sampling=True, num_captions=5
+                    )
                 async_client.ai_album.media.update_one(
                     {"_id": entry["_id"]},
                     {
@@ -74,6 +76,13 @@ class CaptioningWorker(Thread):
                         }
                     },
                 )
+
+        del self.model
+        del self.vis_processors
+
+        with torch.no_grad():
+            torch.cuda.empty_cache()
+
         LOG.debug(
             f"IMAGE_CAPTIONING_WORKER {self.worker_id} proceessed {self.processed} images. "
             + ("Exit by kill!" if self.killer.is_set() else "")
@@ -96,7 +105,7 @@ def run_image_captioning(task_dir, killer):
         },
         {"_id": 1, "path": 1},
         "name",
-        100,
+        50,
     )
 
     if data_loader.get_count() == 0:
@@ -127,4 +136,9 @@ def run_image_captioning(task_dir, killer):
         captioning_worker.start()
         captioning_worker.join()
 
+    gc.collect()
+
+    LOG.debug(
+        f"CUDA memory after clanup allocated: {torch.cuda.memory_allocated()}, reserved {torch.cuda.memory_reserved()}"
+    )
     LOG.debug(f"Captioning complete")

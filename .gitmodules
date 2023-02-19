@@ -10,3 +10,6 @@
 [submodule "face_recognition_models"]
 	path = face_recognition_models
 	url = https://github.com/ageitgey/face_recognition_models.git
+[submodule "facenet_pytorch"]
+	path = facenet_pytorch
+	url = https://github.com/timesler/facenet-pytorch.git

@@ -1,11 +1,12 @@
 import pathlib
 import logging
+import gc
 from threading import Event, Thread
 
 from PIL import Image
 import torch
 import numpy as np
-import face_recognition
+from facenet_pytorch import MTCNN, InceptionResnetV1, extract_face
 
 from server.db import async_client
 from server.conf import (
@@ -25,54 +26,12 @@ MAX_HEIGHT = face_detection_max_height
 BATCH_SIZE = face_detection_batch_size
 
 
-def resize_bounding_boxes(faces, ratio):
-    if ratio < 1:
-        return [
-            (
-                int(top * (1 / ratio)),
-                int(right * (1 / ratio)),
-                int(bottom * (1 / ratio)),
-                int(left * (1 / ratio)),
-            )
-            for (top, right, bottom, left) in faces
-        ]
-    return faces
-
-
-def record_faces(entry, faces, encodings):
-    async_client.ai_album.media.update_one(
-        {"_id": entry["_id"]},
-        {"$set": {"faces": faces, "faceEncodings": encodings}},
-    )
-
-
-def process_batch(batch_images, batch_entries, batch_ratios):
-    face_count = 0
-    batch_faces = face_recognition.batch_face_locations(batch_images, number_of_times_to_upsample=2, batch_size=face_detection_batch_size)
-
-    for image, entry, ratio, faces in zip(
-        batch_images, batch_entries, batch_ratios, batch_faces
-    ):
-        encodings = [
-            enc.tolist()
-            for enc in face_recognition.face_encodings(
-                image, known_face_locations=faces, num_jitters=1, model="large"
-            )
-        ]
-        faces = resize_bounding_boxes(faces, ratio)
-        face_count += len(faces)
-        record_faces(entry, faces, encodings)
-
-    return face_count
-
-
 class FaceDetectionWorker(Thread):
     def __init__(
         self,
         data_loader: DataLoader,
         worker_id: str,
         device_name: str | int,
-        cuda: bool,
         task_dir: str,
         killer: Event,
     ):
@@ -83,12 +42,61 @@ class FaceDetectionWorker(Thread):
         self.task_dir = task_dir
         self.killer = killer
         self.processed = 0
-        self.cuda = cuda
+        self.mtcnn = MTCNN(
+            select_largest=False,
+            keep_all=True,
+            post_process=False,
+            device=self.device_name,
+        )
+        self.resnet = InceptionResnetV1(
+            pretrained="vggface2", device=self.device_name
+        ).eval()
 
-        if not self.cuda:
-            self.batch = False
-        else:
-            self.batch = True
+    def record_faces(self, entry, faces, probs, encodings):
+        async_client.ai_album.media.update_one(
+            {"_id": entry["_id"]},
+            {"$set": {"faces": faces, "probs": probs, "faceEncodings": encodings}},
+        )
+
+    def resize_bounding_boxes(self, faces, ratio):
+        if ratio < 1:
+            return [
+                (
+                    int(top * (1 / ratio)),
+                    int(right * (1 / ratio)),
+                    int(bottom * (1 / ratio)),
+                    int(left * (1 / ratio)),
+                )
+                for (left, top, right, bottom) in faces
+            ]
+        return faces
+
+    def process_batch(self, batch_images, batch_entries, batch_ratios):
+        face_count = 0
+        if len(batch_images) == 0:
+            return 0
+        batch_faces, batch_probs = self.mtcnn.detect(batch_images)
+
+        for image, entry, ratio, faces, probs in zip(
+            batch_images, batch_entries, batch_ratios, batch_faces, batch_probs
+        ):
+            if faces is not None:
+                faces = faces.tolist()
+                probs = probs.tolist()
+                faces = [face for face, prob in zip(faces, probs) if prob > 0.9]
+                if not len(faces) == 0:
+                    face_images = [extract_face(image, face) for face in faces]
+                    face_images = torch.stack(face_images).to(self.device_name)
+                    encodings = self.resnet(face_images).tolist()
+                    faces = self.resize_bounding_boxes(faces, ratio)
+                    face_count += len(faces)
+                    self.record_faces(entry, faces, probs, encodings)
+                else:
+                    self.record_faces(entry, [], [], [])
+            else:
+                self.record_faces(entry, [], [], [])
+
+        return face_count
 
     def run(self) -> None:
         fetch = True
@@ -120,23 +128,13 @@ class FaceDetectionWorker(Thread):
                         (round(image.width * ratio), round(image.height * ratio))
                     )
                 image = image_processing.pad_image(image, MAX_WIDTH, MAX_HEIGHT)
-                # image.show()
-                image = np.array(image)
+                batch_images.append(image)
+                batch_ratios.append(ratio)
+                batch_entries.append(entry)
 
-                if not self.batch:
-                    faces = face_recognition.face_locations(image)
-                    faces = faces = resize_bounding_boxes(faces, ratio)
-                    record_faces(entry, faces)
-                    self.processed += 1
-                    LOG.debug(f"Detected {len(faces)} in image {image.shape}")
-                else:
-                    batch_images.append(image)
-                    batch_ratios.append(ratio)
-                    batch_entries.append(entry)
-
-                if self.batch and len(batch_images) == BATCH_SIZE:
+                if len(batch_images) == BATCH_SIZE:
                     self.processed += BATCH_SIZE
-                    face_count += process_batch(
+                    face_count += self.process_batch(
                         batch_images, batch_entries, batch_ratios
                     )
                     batch_images = []
@@ -144,13 +142,18 @@ class FaceDetectionWorker(Thread):
                     batch_entries = []
 
             self.processed += len(batch_images)
-            face_count += process_batch(batch_images, batch_entries, batch_ratios)
+            face_count += self.process_batch(batch_images, batch_entries, batch_ratios)
             batch_images = []
             batch_ratios = []
             batch_entries = []
 
-            if self.batch:
-                LOG.debug(f"Detected {face_count} faces in {BATCH_SIZE} images")
+            LOG.debug(f"Detected {face_count} faces in {BATCH_SIZE} images")
+
+        del self.mtcnn
+        del self.resnet
+
+        with torch.no_grad():
+            torch.cuda.empty_cache()
 
         LOG.debug(
             f"FACE_DETECTION_WORKER {self.worker_id} proceessed {self.processed} images. "
@@ -189,7 +192,11 @@ def run_face_detection(task_dir, killer):
             for w in range(face_detection_workers_per_gpu):
                 workers.append(
                     FaceDetectionWorker(
-                        data_loader, f"GPU{d}:WORKER{w}", d, True, task_dir, killer
+                        data_loader,
+                        f"GPU{d}:WORKER{w}",
+                        f"cuda:{d}",
+                        task_dir,
+                        killer,
                     )
                 )
         LOG.debug(f"Running {len(workers)} face detection workers")
@@ -199,9 +206,15 @@ def run_face_detection(task_dir, killer):
         LOG.debug("CUDA not found!")
         LOG.debug(f"Running 1 face detection worker")
         captioning_worker = FaceDetectionWorker(
-            data_loader, "CPU:1", None, False, task_dir, killer
+            data_loader, "CPU:1", "cpu", task_dir, killer
         )
         captioning_worker.start()
         captioning_worker.join()
+
+    gc.collect()
+
+    LOG.debug(
+        f"CUDA memory after clanup allocated: {torch.cuda.memory_allocated()}, reserved {torch.cuda.memory_reserved()}"
+    )
 
     LOG.debug(f"Face detection complete")
