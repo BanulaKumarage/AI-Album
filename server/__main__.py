@@ -34,6 +34,7 @@ TASK_KILL = Event()
 
 async_client.ai_album.albums.create_index("directory", unique=True)
 async_client.ai_album.albums.create_index("parentAlbumIds")
+async_client.ai_album.albums.create_index("parentAlbumId")
 async_client.ai_album.media.create_index("path", unique=False)
 async_client.ai_album.media.create_index("albumIds")
 
