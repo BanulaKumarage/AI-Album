@@ -13,11 +13,12 @@ LOG = logging.getLogger(__name__)
 DAG_ROOT = "R"
 
 
-def record_album(name: str, path: str, parent: list[str]) -> ObjectId:
+def record_album(name: str, path: str, parent: str, parents: list[str]) -> ObjectId:
     document = {
         "name": name,
         "directory": path,
-        "parentAlbumIds": parent,
+        "parentAlbumId": parent,
+        "parentAlbumIds": parents,
     }
 
     result = async_client.ai_album.albums.update_one(
@@ -31,17 +32,17 @@ def record_album(name: str, path: str, parent: list[str]) -> ObjectId:
         return result["_id"]
 
 
-def record_media(name: str, path: str, album_ids: list[str]) -> None:
+def record_media(name: str, path: str, albums: list[str]) -> None:
     document = {
         "name": name,
         "path": path,
-        "albumIds": album_ids,
+        "albumIds": albums,
     }
     result = async_client.ai_album.media.update_one(
         {"path": path}, {"$setOnInsert": document}, upsert=True
     )
     if result.upserted_id:
-        LOG.debug(f'Added media "{name}" for albums "{album_ids}" from path "{path}"')
+        LOG.debug(f'Added media "{name}" for albums "{albums}" from path "{path}"')
 
 
 def init_path_graph():
@@ -92,6 +93,7 @@ def run_indexing(dir):
                     pg.nodes[part]["id"] = record_album(
                         itr_part,
                         pg.nodes[part]["path"],
+                        pg.nodes[last_node]["id"],
                         [
                             pg.nodes[p]["id"]
                             for p in pg.nodes()
@@ -136,6 +138,7 @@ def run_indexing(dir):
                     pg.nodes[part]["id"] = record_album(
                         itr_part,
                         pg.nodes[part]["path"],
+                        pg.nodes[last_node]["id"],
                         [
                             pg.nodes[p]["id"]
                             for p in pg.nodes()

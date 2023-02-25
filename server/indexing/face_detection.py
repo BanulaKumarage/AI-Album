@@ -188,7 +188,7 @@ def run_face_detection(task_dir, killer):
 
     if device_count > 0:
         workers = []
-        for d in range(1):
+        for d in range(device_count):
             for w in range(face_detection_workers_per_gpu):
                 workers.append(
                     FaceDetectionWorker(

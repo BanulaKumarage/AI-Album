@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from './logo.svg';
+import { enableMapSet } from "immer";
 import './App.css';
 import {
   createBrowserRouter,
@@ -8,7 +8,6 @@ import {
 } from "react-router-dom";
 import AlbumMediaPage from './pages/albums-page/AlbumMediaPage';
 import MediaPage from './pages/media-page/MediaPage';
-import * as _ from 'lodash'
 import NavWrapperPage from './pages/nav-wrapper-page/NavWrapperPage';
 import SideBarWrapperPage from './pages/nav-wrapper-page/SideBarWrapperPage';
 import FacesPage from './pages/faces-page/FacesPage';
@@ -18,6 +17,8 @@ export type MainPageState = {
   anchorElNav?: any | null,
   anchorElUser?: any | null,
 };
+
+enableMapSet()
 
 const router = createBrowserRouter([
   {

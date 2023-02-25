@@ -32,6 +32,50 @@ async def get_album_sync(query: dict):
 
 
 async def get_albums(query: Any, sort: Any, skip: int, limit: int):
+    print(query)
+    if len(query) > 0:
+        get_albums_pipeline = [
+            {
+                "$match": query,
+            },
+            {
+                "$lookup": {
+                    "from": "albums",
+                    "localField": "_id",
+                    "foreignField": "parentAlbumId",
+                    "as": "result",
+                },
+            },
+            {
+                "$addFields": {
+                    "hasChildren": {
+                        "$gt": [
+                            {
+                                "$size": "$result",
+                            },
+                            0,
+                        ],
+                    },
+                },
+            },
+            {
+                "$project": {
+                    "name": 1,
+                    "hasChildren": 1,
+                },
+            },
+            {
+                "$sort": {
+                    f"{sort}": 1
+                }
+            },
+            {
+                "$limit": limit
+            }
+        ]
+        result = await client.ai_album.albums.aggregate(get_albums_pipeline).to_list(None)
+        return result
+
     result = (
         await client.ai_album.albums.find(query)
         .sort(sort)

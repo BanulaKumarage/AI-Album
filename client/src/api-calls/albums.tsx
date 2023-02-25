@@ -1,5 +1,6 @@
-const fetchAlbums = (skip: number, limit: number, sort: string) => {
-  return fetch(`${process.env.REACT_APP_API}/albums` + '?' + new URLSearchParams({
+const fetchAlbums = (parent: string, skip: number, limit: number, sort: string) => {
+  return fetch(`${process.env.REACT_APP_API}/albums?` + new URLSearchParams({
+    parent: parent,
     limit: limit.toString(),
     skip: skip.toString(),
     sort: sort
