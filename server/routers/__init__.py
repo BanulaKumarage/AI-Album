@@ -3,8 +3,7 @@ import orjson
 from typing import Iterable
 from fastapi.responses import ORJSONResponse
 
-from bson import ObjectId, json_util
-from aiohttp import web
+from bson import ObjectId
 from pymongo.cursor import Cursor
 
 

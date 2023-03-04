@@ -6,7 +6,7 @@ from threading import Event, Thread
 from PIL import Image
 import torch
 import numpy as np
-from facenet_pytorch import MTCNN, InceptionResnetV1, extract_face
+from facenet_pytorch import MTCNN, InceptionResnetV1
 
 from server.db import async_client
 from server.conf import (
@@ -24,6 +24,23 @@ LOG = logging.getLogger(__name__)
 MAX_WIDTH = face_detection_max_width
 MAX_HEIGHT = face_detection_max_height
 BATCH_SIZE = face_detection_batch_size
+
+
+class BatchData:
+    def __init__(self) -> None:
+        self.images = []
+        self.paths = []
+        self.ratios = []
+        self.entries = []
+
+    def reset(self):
+        self.images = []
+        self.paths = []
+        self.ratios = []
+        self.entries = []
+
+    def size(self):
+        return len(self.images)
 
 
 class FaceDetectionWorker(Thread):
@@ -71,23 +88,42 @@ class FaceDetectionWorker(Thread):
             ]
         return faces
 
-    def process_batch(self, batch_images, batch_entries, batch_ratios):
+    def process_batch(self, batch: BatchData):
+        batch_images = batch.images
+        batch_entries = batch.entries
+        batch_ratios = batch.ratios
+        batch_paths = batch.paths
+
         face_count = 0
+
         if len(batch_images) == 0:
             return 0
-        batch_faces, batch_probs = self.mtcnn.detect(batch_images)
 
-        for image, entry, ratio, faces, probs in zip(
-            batch_images, batch_entries, batch_ratios, batch_faces, batch_probs
+        with torch.no_grad():
+            batch_faces, batch_probs = self.mtcnn.detect(batch_images)
+
+        for path, entry, ratio, faces, probs in zip(
+            batch_paths, batch_entries, batch_ratios, batch_faces, batch_probs
         ):
             if faces is not None:
                 faces = faces.tolist()
                 probs = probs.tolist()
                 faces = [face for face, prob in zip(faces, probs) if prob > 0.9]
+                probs = [prob for prob in probs if prob > 0.9]
+
                 if not len(faces) == 0:
-                    face_images = [extract_face(image, face) for face in faces]
-                    face_images = torch.stack(face_images).to(self.device_name)
-                    encodings = self.resnet(face_images).tolist()
+                    unscaled_image = Image.open(path).convert("RGB")
+                    unscaled_face_boxes = [
+                        [dim / max(1, ratio) for dim in face] for face in faces
+                    ]
+
+                    with torch.no_grad():
+                        unscaled_faces = self.mtcnn.extract(
+                            unscaled_image, unscaled_face_boxes, None
+                        )
+                        unscaled_faces = unscaled_faces.to(self.device_name)
+                        encodings = self.resnet(unscaled_faces).cpu().tolist()
+
                     faces = self.resize_bounding_boxes(faces, ratio)
                     face_count += len(faces)
                     self.record_faces(entry, faces, probs, encodings)
@@ -105,9 +141,7 @@ class FaceDetectionWorker(Thread):
         while fetch and not self.killer.is_set():
             data = self.data_loader.get_next_batch()
             fetch = len(data) > 0
-            batch_images = []
-            batch_ratios = []
-            batch_entries = []
+            batch = BatchData()
             face_count = 0
 
             for entry in data:
@@ -128,24 +162,19 @@ class FaceDetectionWorker(Thread):
                         (round(image.width * ratio), round(image.height * ratio))
                     )
                 image = image_processing.pad_image(image, MAX_WIDTH, MAX_HEIGHT)
-                batch_images.append(image)
-                batch_ratios.append(ratio)
-                batch_entries.append(entry)
+                batch.images.append(image)
+                batch.ratios.append(ratio)
+                batch.entries.append(entry)
+                batch.paths.append(path)
 
-                if len(batch_images) == BATCH_SIZE:
+                if batch.size() == BATCH_SIZE:
                     self.processed += BATCH_SIZE
-                    face_count += self.process_batch(
-                        batch_images, batch_entries, batch_ratios
-                    )
-                    batch_images = []
-                    batch_ratios = []
-                    batch_entries = []
+                    face_count += self.process_batch(batch)
+                    batch.reset()
 
-            self.processed += len(batch_images)
-            face_count += self.process_batch(batch_images, batch_entries, batch_ratios)
-            batch_images = []
-            batch_ratios = []
-            batch_entries = []
+            self.processed += batch.size()
+            face_count += self.process_batch(batch)
+            batch.reset()
 
             LOG.debug(f"Detected {face_count} faces in {BATCH_SIZE} images")
 
