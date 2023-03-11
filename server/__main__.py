@@ -3,7 +3,8 @@ from contextlib import suppress
 import logging
 
 import asyncio
-from threading import Event
+from threading import Event as TEvent
+from multiprocessing import Event as MPEvent
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,7 +20,8 @@ from server.conf import supported_image_types
 
 LOG = logging.getLogger(__name__)
 BKG_TASKS = dict()
-TASK_KILL = Event()
+TASK_KILL_THREADING = TEvent()
+TASK_KILL_MPROCESSING = MPEvent()
 
 # async_client.ai_album.drop_collection('albums')
 # async_client.ai_album.drop_collection('media')
@@ -43,7 +45,8 @@ async def end_tasks():
     LOG.debug("Shutting down background tasks")
     thread_pool_executor.shutdown(wait=False)
     process_pool_executor.shutdown(wait=False)
-    TASK_KILL.set()
+    TASK_KILL_THREADING.set()
+    TASK_KILL_MPROCESSING.set()
 
     for _, task in BKG_TASKS.items():
         task.cancel()
@@ -60,8 +63,8 @@ async def start_tasks():
     loop = asyncio.get_running_loop()
     executor = ThreadPoolExecutor(max_workers=8)
     # BKG_TASKS['file_indexer'] = loop.run_in_executor(executor, file_indexer.run_indexing, CWD)
-    # BKG_TASKS['image_captioning'] = loop.run_in_executor(executor, image_captioning.run_image_captioning, CWD, TASK_KILL)
-    BKG_TASKS['face_recognition'] = loop.run_in_executor(executor, face_detection.run_face_detection, CWD, TASK_KILL)
+    # BKG_TASKS['image_captioning'] = loop.run_in_executor(executor, image_captioning.run_image_captioning, CWD, TASK_KILL_MPROCESSING)
+    # BKG_TASKS['face_recognition'] = loop.run_in_executor(executor, face_detection.run_face_detection, CWD, TASK_KILL_MPROCESSING)
 
 
 def create_app():

@@ -1,6 +1,5 @@
 import logging
 import orjson
-from typing import Iterable
 from fastapi.responses import ORJSONResponse
 
 from bson import ObjectId

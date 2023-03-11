@@ -32,16 +32,12 @@ warnings.simplefilter("default")
 SUPPORTED_IMAGE_FORMATS = ['jpeg', 'jpg', 'NEF', 'GPR']
 CWD = pathlib.Path(os.getcwd())
 LAVIS = pathlib.Path(CWD).joinpath('LAVIS').as_posix()
-DLIB = next(pathlib.Path(CWD).joinpath('dlib').glob('dist/*.egg')).as_posix()
-FACE_RECOGNITION_MODELS = pathlib.Path(CWD).joinpath('face_recognition_models').as_posix()
-FACE_RECOGNITION = pathlib.Path(CWD).joinpath('face_recognition').as_posix()
-FACENET_PYTORCH = pathlib.Path(CWD).joinpath('facenet_pytorch').as_posix()
+DEEP_FACE = pathlib.Path(CWD).joinpath('deepface').as_posix()
+RETINA_FACE = pathlib.Path(CWD).joinpath('retinaface').as_posix()
 
 sys.path.append(LAVIS)
-sys.path.append(DLIB)
-sys.path.append(FACE_RECOGNITION_MODELS)
-sys.path.append(FACE_RECOGNITION)
-# sys.path.append(FACENET_PYTORCH)
+sys.path.append(RETINA_FACE)
+sys.path.append(DEEP_FACE)
 
 
 def load_logger():

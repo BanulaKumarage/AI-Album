@@ -1,6 +1,7 @@
 import pathlib
 import logging
-from threading import Event, Thread
+from threading import Thread
+from multiprocessing import Event, Process
 import gc
 
 from PIL import Image
@@ -89,7 +90,7 @@ class CaptioningWorker(Thread):
         )
 
 
-def run_image_captioning(task_dir, killer):
+def runner(task_dir, killer):
     device_count = torch.cuda.device_count()
     data_loader = DataLoader(
         async_client.ai_album.media,
@@ -142,3 +143,9 @@ def run_image_captioning(task_dir, killer):
         f"CUDA memory after clanup allocated: {torch.cuda.memory_allocated()}, reserved {torch.cuda.memory_reserved()}"
     )
     LOG.debug(f"Captioning complete")
+
+
+def run_image_captioning(task_dir, killer):
+    process = Process(target=runner, args=(task_dir, killer))
+    process.start()
+    process.join()

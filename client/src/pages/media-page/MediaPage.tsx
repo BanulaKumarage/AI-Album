@@ -121,7 +121,7 @@ export default function MediaPage() {
                       <Stack direction="row" spacing={2}>
                         {_.map(state.metadata.faces, (face, index) => {
                           return (
-                            <Avatar sx={{ width: 100, height: 100 }} key={`face-${index}`} alt="" src={`${faceUrl}?top=${face[0]}&right=${face[1]}&bottom=${face[2]}&left=${face[3]}`} />
+                            <Avatar sx={{ width: 100, height: 100 }} key={`face-${index}`} alt="" src={`${faceUrl}?top=${face.top}&right=${face.right}&bottom=${face.bottom}&left=${face.left}`} />
                           )
                         })}
                       </Stack>
