@@ -1,7 +1,6 @@
 import pathlib
 import logging
 import glob
-from typing import Optional
 
 import networkx as nx
 from bson import ObjectId

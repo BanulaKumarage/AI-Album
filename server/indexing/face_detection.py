@@ -12,8 +12,6 @@ from deepface import DeepFace
 from server.db import async_client
 from server.conf import (
     face_detection_workers_per_device,
-    face_detection_max_width,
-    face_detection_max_height,
     face_detection_batch_size,
     supported_image_types,
 )
@@ -22,8 +20,6 @@ from server.utils.image_processing import rotate_image
 
 
 LOG = logging.getLogger(__name__)
-MAX_WIDTH = face_detection_max_width
-MAX_HEIGHT = face_detection_max_height
 BATCH_SIZE = face_detection_batch_size
 
 

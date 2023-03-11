@@ -136,3 +136,6 @@ mongo-data
 
 # album data path
 data
+
+# face clusters
+face_groups

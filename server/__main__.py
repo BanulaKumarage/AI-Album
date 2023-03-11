@@ -15,6 +15,7 @@ from server.routers import albums_router, media_router
 from server.indexing import image_captioning
 from server.indexing import face_detection
 from server.indexing import file_indexer
+from server.indexing import face_clustering
 from server.conf import supported_image_types
 
 
@@ -65,6 +66,7 @@ async def start_tasks():
     # BKG_TASKS['file_indexer'] = loop.run_in_executor(executor, file_indexer.run_indexing, CWD)
     # BKG_TASKS['image_captioning'] = loop.run_in_executor(executor, image_captioning.run_image_captioning, CWD, TASK_KILL_MPROCESSING)
     # BKG_TASKS['face_recognition'] = loop.run_in_executor(executor, face_detection.run_face_detection, CWD, TASK_KILL_MPROCESSING)
+    # BKG_TASKS['face_clustering'] = loop.run_in_executor(executor, face_clustering.run_face_clustering, CWD, TASK_KILL_THREADING)
 
 
 def create_app():
