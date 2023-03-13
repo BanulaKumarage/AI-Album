@@ -11,12 +11,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from server import CWD, thread_pool_executor, process_pool_executor
 from server.db import async_client, client
-from server.routers import albums_router, media_router
+from server.routers import albums_router, media_router, faces_router
 from server.indexing import image_captioning
 from server.indexing import face_detection
 from server.indexing import file_indexer
 from server.indexing import face_clustering
-from server.conf import supported_image_types
 
 
 LOG = logging.getLogger(__name__)
@@ -24,15 +23,13 @@ BKG_TASKS = dict()
 TASK_KILL_THREADING = TEvent()
 TASK_KILL_MPROCESSING = MPEvent()
 
-# async_client.ai_album.drop_collection('albums')
-# async_client.ai_album.drop_collection('media')
+# async_client.ai_album.drop_collection("albums")
+# async_client.ai_album.drop_collection("media")
+# async_client.ai_album.drop_collection("faces")
+# async_client.ai_album.drop_collection("face_groups")
 # async_client.ai_album.media.update_many(
-#     {
-#         "$and": [
-#             {"path": {"$regex": "|".join([f'{fmt}$' for fmt in supported_image_types])}},
-#         ]
-#     },
-#     {"$unset": {"caption": "", "faces": ""}},
+#     {},
+#     {"$unset": {"caption": "", "faces": "", "faceEncodings": "", "probs": ""}},
 # )
 
 async_client.ai_album.albums.create_index("directory", unique=True)
@@ -40,6 +37,18 @@ async_client.ai_album.albums.create_index("parentAlbumIds")
 async_client.ai_album.albums.create_index("parentAlbumId")
 async_client.ai_album.media.create_index("path", unique=False)
 async_client.ai_album.media.create_index("albumIds")
+
+
+def run_each_task(cwd, thread_killer, process_killer):
+    # if not thread_killer.is_set():
+    #     file_indexer.run_indexing(CWD)
+    # if not thread_killer.is_set():
+    #     face_detection.run_face_detection(cwd, process_killer)
+    # if not thread_killer.is_set():
+    #     face_clustering.run_face_clustering(cwd, thread_killer)
+    # if not thread_killer.is_set():
+    #     image_captioning.run_image_captioning(cwd, process_killer)
+    pass
 
 
 async def end_tasks():
@@ -63,10 +72,9 @@ async def start_tasks():
     LOG.debug("Starting background tasks")
     loop = asyncio.get_running_loop()
     executor = ThreadPoolExecutor(max_workers=8)
-    # BKG_TASKS['file_indexer'] = loop.run_in_executor(executor, file_indexer.run_indexing, CWD)
-    # BKG_TASKS['image_captioning'] = loop.run_in_executor(executor, image_captioning.run_image_captioning, CWD, TASK_KILL_MPROCESSING)
-    # BKG_TASKS['face_recognition'] = loop.run_in_executor(executor, face_detection.run_face_detection, CWD, TASK_KILL_MPROCESSING)
-    # BKG_TASKS['face_clustering'] = loop.run_in_executor(executor, face_clustering.run_face_clustering, CWD, TASK_KILL_THREADING)
+    BKG_TASKS["TASKS_WATERFALL"] = loop.run_in_executor(
+        executor, run_each_task, CWD, TASK_KILL_THREADING, TASK_KILL_MPROCESSING
+    )
 
 
 def create_app():
@@ -83,6 +91,7 @@ def create_app():
     )
     app.include_router(albums_router.router)
     app.include_router(media_router.router)
+    app.include_router(faces_router.router)
 
     @app.on_event("startup")
     async def startup():

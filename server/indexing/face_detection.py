@@ -6,21 +6,26 @@ from multiprocessing import Process, Event
 
 from PIL import Image
 import numpy as np
-import tensorflow as tf
-from deepface import DeepFace
 
 from server.db import async_client
 from server.conf import (
     face_detection_workers_per_device,
     face_detection_batch_size,
     supported_image_types,
+    face_detector,
+    face_model,
 )
 from server.indexing.utils import DataLoader
 from server.utils.image_processing import rotate_image
 
+import insightface
+from insightface.app import FaceAnalysis
+
 
 LOG = logging.getLogger(__name__)
 BATCH_SIZE = face_detection_batch_size
+DETECTOR = face_detector
+FACE_MODEL = face_model
 
 
 class FaceDetectionWorker(Thread):
@@ -40,20 +45,12 @@ class FaceDetectionWorker(Thread):
         self.killer = killer
         self.processed = 0
 
-    def convert_face(self, face):
-        x = face["x"]
-        y = face["y"]
-        h = face["h"]
-        w = face["w"]
-
-        return {"top": y, "left": x, "bottom": y + h, "right": x + w}
-
     def record_faces(self, entry, faces, probs, encodings):
         async_client.ai_album.media.update_one(
             {"_id": entry["_id"]},
             {
                 "$set": {
-                    "faces": [self.convert_face(face) for face in faces],
+                    "faces": faces,
                     "probs": probs,
                     "faceEncodings": encodings,
                 }
@@ -63,6 +60,9 @@ class FaceDetectionWorker(Thread):
     def run(self) -> None:
         fetch = True
         LOG.debug(f"Starting face detection worker {self.worker_id}")
+
+        app = FaceAnalysis(providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+        app.prepare(ctx_id=0, det_size=(640, 640), det_thresh=0.8)
 
         while fetch and not self.killer.is_set():
             data = self.data_loader.get_next_batch()
@@ -79,26 +79,37 @@ class FaceDetectionWorker(Thread):
                 )
 
                 image = np.array(rotate_image(Image.open(path)).convert("RGB"))
-                
+                open_cv_image = np.array(image)
+                open_cv_image = open_cv_image[:, :, ::-1].copy()
 
-                with tf.device(self.device_name):
-                    faces = DeepFace.represent(
-                        np.array(image),
-                        detector_backend="retinaface",
-                        model_name="Facenet512",
-                        enforce_detection=False,
+                try:
+                    faces = app.get(image)
+                    faces_count += len(faces)
+                    faces_new = []
+
+                    for face in faces:
+                        face["bbox"] = face["bbox"].tolist()
+                        faces_new.append(
+                            {
+                                "left": face["bbox"][0],
+                                "top": face["bbox"][1],
+                                "right": face["bbox"][2],
+                                "bottom": face["bbox"][3],
+                            }
+                        )
+
+                    self.record_faces(
+                        entry,
+                        faces_new,
+                        [face["det_score"].tolist() for face in faces],
+                        [face["embedding"].tolist() for face in faces],
                     )
+                except:
+                    continue
 
-                faces = [face for face in faces if face["face_confidence"] > 0.9]
-                faces_count += len(faces)
-                self.record_faces(
-                    entry,
-                    [face["facial_area"] for face in faces],
-                    [face["face_confidence"] for face in faces],
-                    [face["embedding"] for face in faces],
-                )
-
-            LOG.debug(f"{self.worker_id} Detected {faces_count} faces in {BATCH_SIZE} images")
+            LOG.debug(
+                f"{self.worker_id} Detected {faces_count} faces in {BATCH_SIZE} images"
+            )
             self.processed += faces_count
 
         LOG.debug(
@@ -108,16 +119,6 @@ class FaceDetectionWorker(Thread):
 
 
 def wrapper(task_dir, killer):
-    devices = tf.config.get_visible_devices("GPU")
-    device_count = len(devices)
-    device_names = (
-        [f"GPU:{g}" for g in range(device_count)] if device_count else ["CPU"]
-    )
-
-    if device_count:
-        for device in devices:
-            tf.config.experimental.set_memory_growth(device, True)
-
     data_loader = DataLoader(
         collection=async_client.ai_album.media,
         query={
@@ -142,7 +143,7 @@ def wrapper(task_dir, killer):
     LOG.debug(f"Face detection needed for {data_loader.get_count()}.")
     workers = []
 
-    for device in device_names:
+    for device in ["CPU"]:
         for worker in range(face_detection_workers_per_device):
             workers.append(
                 FaceDetectionWorker(

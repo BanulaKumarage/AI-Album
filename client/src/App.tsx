@@ -11,6 +11,7 @@ import MediaPage from './pages/media-page/MediaPage';
 import NavWrapperPage from './pages/nav-wrapper-page/NavWrapperPage';
 import SideBarWrapperPage from './pages/nav-wrapper-page/SideBarWrapperPage';
 import FacesPage from './pages/faces-page/FacesPage';
+import FaceImagesPage from './pages/face-images-page/AlbumMediaPage';
 
 
 export type MainPageState = {
@@ -48,8 +49,16 @@ const router = createBrowserRouter([
           {
             path: "faces",
             element: <FacesPage />,
+          },
+          {
+            path: "faces/:faceGroup",
+            element: <FaceImagesPage />,
           }
         ]
+      },
+      {
+        path: "faces/:faceGroup/media/:media",
+        element: <MediaPage />,
       },
       {
         path: "albums/:album/media/:media",

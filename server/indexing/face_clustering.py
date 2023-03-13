@@ -3,11 +3,12 @@ import gc
 from threading import Event
 import os
 import shutil
+from bson import ObjectId
 import orjson
 import glob
 import pathlib
+from scipy.spatial import distance
 
-from deepface.DeepFace import dst
 import dask_mongo
 from dask.distributed import Client, LocalCluster
 
@@ -19,10 +20,16 @@ from server.conf import (
     mongo_db_port,
     mongo_db_user,
     mongo_db_password,
+    face_distance_metric,
+    face_distance_threshold,
+    face_model,
 )
 
 
 LOG = logging.getLogger(__name__)
+FACE_MODEL = face_model
+FACE_DISTANCE_METRIC = face_distance_metric
+FACE_DISTANCE_THRESHOLD = face_distance_threshold
 
 
 def has_faces(document):
@@ -46,33 +53,64 @@ def to_faces(document):
     return array
 
 
-def get_matching(this, that):
-    dist = dst.findCosineDistance(this["enc"], that["enc"])
-    if dist > 0.3:
+def get_matching(this, that, metric, threshold):
+    if metric == "cosine":
+        dist = distance.cosine(this["enc"], that["enc"])
+    elif metric == "euclidean":
+        dist = distance.euclidean(this["enc"], that["enc"])
+
+    if dist > threshold:
         return None
     return this
 
 
-def get_mismatching(this, that):
-    dist = dst.findCosineDistance(this["enc"], that["enc"])
-    if dist <= 0.3:
+def get_mismatching(this, that, metric, threshold):
+    if metric == "cosine":
+        dist = distance.cosine(this["enc"], that["enc"])
+    elif metric == "euclidean":
+        dist = distance.euclidean(this["enc"], that["enc"])
+
+    if dist <= threshold:
         return None
     return this
 
 
-def record_face_group(group, path, face, count):
-    async_client.ai_album.face_groups.insert_one(
-        {"group": group, "path": path, "face": face, "facesCount": count}
+def record_face_group(image_id, path, face, is_prominant):
+    result = async_client.ai_album.face_groups.insert_one(
+        {
+            "imageId": ObjectId(image_id),
+            "path": path,
+            "face": face,
+            "isProminant": is_prominant,
+        }
+    )
+    return result.inserted_id
+
+
+def update_face_group(id, count):
+    async_client.ai_album.face_groups.update_one(
+        {"_id": id},
+        {
+            "$set": {
+                "facesCount": count,
+            }
+        },
     )
 
 
-def record_group_face(group, path, face, is_prominant):
-    async_client.ai_album.group_faces.insert_one(
-        {"group": group, "path": path, "face": face, "isProminant": is_prominant}
+def record_face(image_id, group_id, path, face, is_prominant):
+    async_client.ai_album.faces.insert_one(
+        {
+            "imageId": ObjectId(image_id),
+            "groupId": group_id,
+            "path": path,
+            "face": face,
+            "isProminant": is_prominant,
+        }
     )
 
 
-def record_group(task_dir, sub_dir, is_prominant):
+def save_to_db(task_dir, sub_dir, is_prominant):
     data_path = f"{task_dir}/face_groups/{sub_dir}"
 
     for group in glob.iglob(f"{data_path}/*"):
@@ -80,23 +118,36 @@ def record_group(task_dir, sub_dir, is_prominant):
         resource_path = group.relative_to(data_path)
         (face_group,) = resource_path.parts
         count = 0
-        entry = None
+        group_id = None
 
         for file in glob.iglob(f"{data_path}/{face_group}/*"):
-            with open(file) as file:
-                for line in file:
+            with open(file) as fp:
+                for line in fp:
                     count += 1
                     line_entry = orjson.loads(line)
-                    record_group_face(
-                        face_group, line_entry["path"], line_entry["face"], is_prominant
-                    )
-                    if entry is None:
-                        entry = line_entry
 
-        record_face_group(face_group, entry["path"], entry["face"], count)
+                    if group_id is None:
+                        group_id = record_face_group(
+                            line_entry["_id"],
+                            line_entry["path"],
+                            line_entry["face"],
+                            is_prominant,
+                        )
+
+                    record_face(
+                        line_entry["_id"],
+                        group_id,
+                        line_entry["path"],
+                        line_entry["face"],
+                        is_prominant,
+                    )
+        update_face_group(group_id, count)
 
 
 def run_face_clustering(task_dir, killer: Event):
+    async_client.ai_album.face_groups.delete_many({})
+    async_client.ai_album.faces.delete_many({})
+
     cluster = LocalCluster(n_workers=face_clustering_workers, threads_per_worker=1)
     client = Client(cluster)
 
@@ -132,11 +183,11 @@ def run_face_clustering(task_dir, killer: Event):
         items = source.take(1, npartitions=source.npartitions)
         item = items[0]
 
-        matching = source.map(get_matching, item)
+        matching = source.map(get_matching, item, FACE_DISTANCE_METRIC, FACE_DISTANCE_THRESHOLD)
         matching = matching.filter(lambda x: x is not None)
         matches = matching.count().compute()
 
-        mismatching = source.map(get_mismatching, item)
+        mismatching = source.map(get_mismatching, item, FACE_DISTANCE_METRIC, FACE_DISTANCE_THRESHOLD)
         mismatching = mismatching.filter(lambda x: x is not None)
         matching = matching.map(orjson.dumps)
 
@@ -158,10 +209,7 @@ def run_face_clustering(task_dir, killer: Event):
     cluster.close()
     gc.collect()
 
-    async_client.ai_album.face_groups.delete_many({})
-    async_client.ai_album.group_faces.delete_many({})
-
-    record_group(task_dir, "prominant", True)
-    record_group(task_dir, "non-prominant", False)
+    save_to_db(task_dir, "prominant", True)
+    save_to_db(task_dir, "non-prominant", False)
 
     LOG.debug("FACE-CLUSTERING: completed")

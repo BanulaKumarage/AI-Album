@@ -52,10 +52,10 @@ export default function MediaView(props: MediaViewProps) {
 
   const atEnd = () => {
     const skip = state.skip + state.limit;
-    console.log('At end', skip)
 
     fetchMediaByAlbum(state.mediaUrl, skip, state.limit, state.sort).then(
       (result: Array<any>) => {
+        if (_.isEmpty(result)) return;
         updateState((draft: MediaViewState) => {
           draft.media = [...state.media, ...result];
           draft.skip = skip;
@@ -75,7 +75,7 @@ export default function MediaView(props: MediaViewProps) {
       <Paper sx={{ display: { xs: 'none', md: 'flex' } }}>
         <ImageList sx={{ width: '100%', height: '100%', margin: '0' }} cols={5} rowHeight={'auto'}>
           {_.map(_.get(state, 'media'), (item: any, index: number) => (
-            <ImageListItem component={Link} to={`./media/${item._id}`} relative={'route'} state={state} key={`image-list-${item._id}`} style={{ overflow: 'hidden' }}>
+            <ImageListItem component={Link} to={`./media/${item._id}`} relative={'route'} state={state} key={`media-view-${item._id}-${item.groupId}`} style={{ overflow: 'hidden' }}>
               <img
                 src={`${process.env.REACT_APP_API}/thumbnail/${item._id}`}
                 srcSet={`${process.env.REACT_APP_API}/thumbnail/${item._id} 2x`}
@@ -89,7 +89,7 @@ export default function MediaView(props: MediaViewProps) {
       <Paper sx={{ display: { xs: 'flex', md: 'none' } }}>
         <ImageList sx={{ width: '100%', height: '100%', margin: '0' }} cols={3} rowHeight={'auto'}>
           {_.map(_.get(state, 'media'), (item: any, index: number) => (
-            <ImageListItem component={Link} to={`./media/${item._id}`} relative={'route'} state={state} key={`image-list-${item._id}`} style={{ overflow: 'hidden' }}>
+            <ImageListItem component={Link} to={`./media/${item._id}`} relative={'route'} state={state} key={`media-view-${item._id}-${item.groupId}`} style={{ overflow: 'hidden' }}>
               <img
                 src={`${process.env.REACT_APP_API}/thumbnail/${item._id}`}
                 srcSet={`${process.env.REACT_APP_API}/thumbnail/${item._id} 2x`}

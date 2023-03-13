@@ -1,9 +1,6 @@
 [submodule "LAVIS"]
 	path = LAVIS
 	url = https://github.com/salesforce/LAVIS.git
-[submodule "deepface"]
-	path = deepface
-	url = https://github.com/serengil/deepface.git
-[submodule "retinaface"]
-	path = retinaface
-	url = https://github.com/serengil/retinaface.git
+[submodule "insightface"]
+	path = insightface
+	url = https://github.com/deepinsight/insightface.git

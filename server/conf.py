@@ -13,6 +13,10 @@ image_captioning_workers_per_gpu = 4
 face_detection_workers_per_device = 1
 face_detection_batch_size = 128
 face_clustering_workers = cpu_count()
+face_detector = "mtcnn"
+face_model = "ArcFace"
+face_distance_metric = "cosine"
+face_distance_threshold = 0.8
 
 # album
 thumbnail_resolution = 250, 250
@@ -24,7 +28,5 @@ supported_image_types = [
     "JPEG",
     "jpeg",
     "HEIC",
-    "heic",
-    "NEF",
-    "nef"
+    "heic"
 ]

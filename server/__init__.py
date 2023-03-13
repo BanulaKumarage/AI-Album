@@ -32,12 +32,8 @@ warnings.simplefilter("default")
 SUPPORTED_IMAGE_FORMATS = ['jpeg', 'jpg', 'NEF', 'GPR']
 CWD = pathlib.Path(os.getcwd())
 LAVIS = pathlib.Path(CWD).joinpath('LAVIS').as_posix()
-DEEP_FACE = pathlib.Path(CWD).joinpath('deepface').as_posix()
-RETINA_FACE = pathlib.Path(CWD).joinpath('retinaface').as_posix()
 
 sys.path.append(LAVIS)
-sys.path.append(RETINA_FACE)
-sys.path.append(DEEP_FACE)
 
 
 def load_logger():

@@ -32,7 +32,6 @@ async def get_album_sync(query: dict):
 
 
 async def get_albums(query: Any, sort: Any, skip: int, limit: int):
-    print(query)
     if len(query) > 0:
         get_albums_pipeline = [
             {

@@ -15,16 +15,6 @@ export type MediaPageState = {
   metadata: any;
 };
 
-function createData(
-  name: string,
-  calories: number,
-  fat: number,
-  carbs: number,
-  protein: number,
-) {
-  return { name, calories, fat, carbs, protein };
-}
-
 export default function MediaPage() {
   const { media } = useParams();
   const navigate = useNavigate();

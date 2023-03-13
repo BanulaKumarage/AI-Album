@@ -1,7 +1,5 @@
 import React from 'react'
-import { useParams } from 'react-router-dom';
-import * as _ from 'lodash'
-import MediaView from '../../components/MediaView';
+import FacesView from '../../components/FacesView';
 
 
 export type FacesPageState = {
@@ -11,11 +9,9 @@ export type FacesPageState = {
 };
 
 export default function FacesPage() {
-  const mediaUrl = `${process.env.REACT_APP_API}/media`;
-
   return (
     <>
-      <MediaView key={mediaUrl} url={mediaUrl}></MediaView>
+      <FacesView key={'faces-view'}></FacesView>
     </>
   )
 };
