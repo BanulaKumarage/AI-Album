@@ -31,4 +31,3 @@ supported_image_types = [
     "HEIC",
     "heic"
 ]
-
