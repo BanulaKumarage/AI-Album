@@ -23,6 +23,7 @@ from server.conf import (
     face_distance_metric,
     face_distance_threshold,
     face_model,
+    face_count_prominance_threshold,
 )
 
 
@@ -183,15 +184,19 @@ def run_face_clustering(task_dir, killer: Event):
         items = source.take(1, npartitions=source.npartitions)
         item = items[0]
 
-        matching = source.map(get_matching, item, FACE_DISTANCE_METRIC, FACE_DISTANCE_THRESHOLD)
+        matching = source.map(
+            get_matching, item, FACE_DISTANCE_METRIC, FACE_DISTANCE_THRESHOLD
+        )
         matching = matching.filter(lambda x: x is not None)
         matches = matching.count().compute()
 
-        mismatching = source.map(get_mismatching, item, FACE_DISTANCE_METRIC, FACE_DISTANCE_THRESHOLD)
+        mismatching = source.map(
+            get_mismatching, item, FACE_DISTANCE_METRIC, FACE_DISTANCE_THRESHOLD
+        )
         mismatching = mismatching.filter(lambda x: x is not None)
         matching = matching.map(orjson.dumps)
 
-        if matches > 50:
+        if matches > face_count_prominance_threshold:
             matching.to_textfiles(
                 f"{task_dir}/face_groups/prominant/{group_id_prominant}"
             )

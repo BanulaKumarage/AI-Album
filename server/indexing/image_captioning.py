@@ -46,6 +46,7 @@ class CaptioningWorker(Thread):
         while fetch and not self.killer.is_set():
             fetch = False
             data = self.data_loader.get_next_batch()
+            self.processed += len(data)
 
             for entry in data:
                 fetch = True

@@ -9,6 +9,7 @@ services:
         restart: always
         ports:
             - 27017:27017
+        user: "${UID}:${GID}"
         volumes:
             - ./mongo-data/:/data/db/
             - ./mongo-init/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro

@@ -40,14 +40,14 @@ async_client.ai_album.media.create_index("albumIds")
 
 
 def run_each_task(cwd, thread_killer, process_killer):
-    # if not thread_killer.is_set():
-    #     file_indexer.run_indexing(CWD)
-    # if not thread_killer.is_set():
-    #     face_detection.run_face_detection(cwd, process_killer)
-    # if not thread_killer.is_set():
-    #     face_clustering.run_face_clustering(cwd, thread_killer)
-    # if not thread_killer.is_set():
-    #     image_captioning.run_image_captioning(cwd, process_killer)
+    if not thread_killer.is_set():
+        file_indexer.run_indexing(CWD)
+    if not thread_killer.is_set():
+        face_detection.run_face_detection(cwd, process_killer)
+    if not thread_killer.is_set():
+        face_clustering.run_face_clustering(cwd, thread_killer)
+    if not thread_killer.is_set():
+        image_captioning.run_image_captioning(cwd, process_killer)
     pass
 
 

@@ -17,6 +17,7 @@ face_detector = "mtcnn"
 face_model = "ArcFace"
 face_distance_metric = "cosine"
 face_distance_threshold = 0.8
+face_count_prominance_threshold = 2
 
 # album
 thumbnail_resolution = 250, 250
@@ -30,3 +31,4 @@ supported_image_types = [
     "HEIC",
     "heic"
 ]
+
