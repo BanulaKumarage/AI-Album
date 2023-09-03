@@ -20,10 +20,15 @@ Hobby project in progress. Everything is still in progress. Re-use at your own r
 ```bash
 mamba create -n aialbum transformers python=3.10 pytorch fairscale dask-mongo torchaudio pytorch-cuda=11.7 iopath cudatoolkit=11.7  -c pytorch -c nvidia -c iopath -c conda-forge
 
+mamba activate aialbum
+
 mamba install rapids=23.02 -c rapidsai -c conda-forge -c nvidia
-pip install "fastapi[all]" pillow pillow-heif einops spacy pycocoevalcap cryptography==38.0.4 motor pymongo pyyaml networkx omegaconf timm decord opencv-python webdataset jupyterlab torchvision
+pip install "fastapi[all]" pillow pillow-heif einops pycocoevalcap cryptography==38.0.4 motor pymongo pyyaml networkx omegaconf timm decord opencv-python webdataset jupyterlab torchvision
 pip install tensorflow
 pip install gdown
+pip install spacy
+pip install insightface
+pip install onnxruntime
 ```
 
 Installation in Raspberry Pi 4 B (8 GB)
@@ -55,9 +60,12 @@ export UID=$(id -u)
 export GID=$(id -g)
 
 docker-compose up -d mongo
+docker-compose up -d mongo-express
 ```
 
 ## Running the dev server
+
+- Create a folder called `data` and mount or copy some albums as folders and nested folders
 
 ```
 uvicorn server.__main__:create_app --factory --reload
@@ -75,3 +83,8 @@ python -m server
 ```bash
 python server/clean.py
 ```
+
+# Running the Client
+
+- Add a `.env` file as in `client/.sampleenv`
+- Run `npm start`
