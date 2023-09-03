@@ -29,6 +29,7 @@ pip install gdown
 pip install spacy
 pip install insightface
 pip install onnxruntime
+pip install uvicorn
 ```
 
 Installation in Raspberry Pi 4 B (8 GB)
